@@ -15,6 +15,8 @@ using Arpack
     rmax=15
     nmax=10
     lmax=7
+
+    offset=100 #Sparse Matrixを計算する際のoffset
 end
 
 mutable struct QuantumNumber
@@ -36,7 +38,6 @@ function getrmesh()
 end
 
 #Ay"+By'+Cy=ϵy
-
 function CoefA()
 end
 
@@ -106,19 +107,29 @@ function MakeHmat(rmesh)
                 Hmat[i,j]+=Ai*dij+Bi*cij
             end
         end
+
     end
 
     return Hmat
 end
 
-function NormFact(ψ,rmesh)
+function IntTrap(x,y)
+    N=length(x)
+    ans=0.0
+    ans+=2*sum(y)-y[N]-y[1]
+    ans*=(x[N]-x[1])/(2*(N-1))
+    return ans
+end
+
+function NormFact(rmesh,ψ)
+    ans=sqrt(IntTrap(rmesh,ψ))
+    return 1/ans
 end
 
 function CalcStates(QN::QuantumNumber)
     States=SingleParticleState[]
     rmesh=getrmesh()
 
-    offset=100
     Hmat=MakeHmat(rmesh)
     for i in 1:Nmesh
         Hmat[i,i]+=offset
@@ -127,7 +138,7 @@ function CalcStates(QN::QuantumNumber)
     E,ψ=eigs(Hmat,nev=nmax)
     E=real(E.-offset)
     for i in 1:nmax
-        ψ[:,i]=real(ψ[:,i])./NormFact(real(ψ[:,i]),rmesh)
+        ψ[:,i]=real(ψ[:,i])./NormFact(rmesh,real(ψ[:,i]))
         push!(States,SingleParticleState(QN,E[i],ψ[:,i]))
     end
 
