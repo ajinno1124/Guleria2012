@@ -1,5 +1,4 @@
-module NuclParamaters
-    export NuclParams, getParams
+module NuclParameters
     mutable struct NuclParams
         t0::Float64
         t1::Float64
@@ -86,11 +85,27 @@ module NuclParamaters
 
         return NuclParams(t0,t1,t2,t3,x0,x1,x2,x3,σ,W0)
     end
+
+    function getaN(ParamType::String)
+        aN=zeros(Float64,10)
+        p=getParams(ParamType)
+        aN[1]=0.25*p.t0*(2+p.x0)
+        aN[2]=-0.25*p.t0*(2*p.x0+1)
+        aN[3]=1/24*p.t3*(2*p.x3)
+        aN[4]=-1/24*p.t3*(2*p.x3+1)
+        aN[5]=1/8*(p.t1*(2+p.x1)+p.t2*(2+p.x2))
+        aN[6]=1/8*(p.t2*(2*p.x2+1)-p.t1*(2*p.x1+1))
+        aN[7]=1/32*(3*p.t1*(2+p.x1)-p.t2*(2+p.x2))
+        aN[8]=-1/32*(3*p.t1*(2*p.x1+1)+p.t2*(2*p.x2+1))
+        aN[9]=-1/16*(p.t1*p.x1+p.t2*p.x2)
+        aN[10]=1/16*(p.t1-p.t2)
+
+        return aN
+    end
 end
 
 
-module LambdaParamaters
-    export LambdaParams, getParams
+module LambdaParameters
     mutable struct LambdaParams
         γ::Float64
         u0::Float64
@@ -168,6 +183,18 @@ module LambdaParamaters
             y3 = -0.5645
         end
 
-        return LambdaParameters(γ,u0,u1,u2,u3p,y0,y3)
+        return LambdaParams(γ,u0,u1,u2,u3p,y0,y3)
     end
+
+    function getaΛ(ParamType::String)
+        aΛ=zeros(Float64,4)
+        p=getParams(ParamType)
+        aΛ[1]=p.u0*(1+0.5*p.y0)
+        aΛ[2]=0.25*(p.u1+p.u2)
+        aΛ[3]=1.0/8.0*(3*p.u1-p.u2)
+        aΛ[4]=3/8*p.u3p*(1+0.5*p.y3)
+
+        return aΛ
+    end
+
 end
