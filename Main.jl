@@ -20,7 +20,7 @@ using .MyLib
     Nmesh=500
     rmax=25
     nmax=5
-    lmax=7
+    lmax=6
 
     offset=100 #Sparse Matrixを計算する際のoffset
 end
@@ -44,19 +44,20 @@ mutable struct AtomNum
 end
 
 function getrmesh()
-    #h=rmax/(Nmesh-0.5)
-    #rmesh=range(0.5*h, (Nmesh-0.5)*h, length=Nmesh)
-    rmesh=range(1e-3,rmax,length=Nmesh)
+    h=rmax/(Nmesh-0.5)
+    rmesh=range(0.5*h, (Nmesh-0.5)*h, length=Nmesh)
+
+    #rmesh=range(1e-1,rmax,length=Nmesh)
     return rmesh
 end
 
 ##########################################################
 # make Hamiltonian matrix
-function Calc_ρ(occ,States::Vector{SingleParticleState},rmesh)
+function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
     ρ=zeros(Float64,Nmesh)
     for i in 1:length(occ)
         j=States[i].QN.j
-        @. ρ[:]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[:]/rmesh[:])
+        @. ρ[:]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[:]/rmesh[:])^2
     end
     return ρ
 end
@@ -95,8 +96,8 @@ function Calc_J(occ,States::Vector{SingleParticleState},rmesh)
     J=zeros(Float64,Nmesh)
     for i=eachindex(occ)
         j=States[i].QN.j
-        l=States[i].QN.length
-        @. J[:]+=occ[i]/rmesh[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[:]/rmesh[i])
+        l=States[i].QN.l
+        @. J[:]+=occ[i]/rmesh[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[:]/rmesh[:])^2
     end
     return J
 end
@@ -173,16 +174,13 @@ function CoefC(h2mVal,dh2mVal,Vq,Wq,QN::QuantumNumber)
 end
 =#
 
-function calc_cij2(i,j,h)
+function calc_cij2(i,j,h,l)
     cij = 0.0
     if i==1
-        cij += ifelse(j==1,-3.0,0.0)
-        cij += ifelse(j==2,4.0,0.0)
-        cij += ifelse(j==3,-1.0,0.0)
+        cij += ifelse(j==1,(-1)^l,0.0)
+        cij += ifelse(j==2,2.0/3.0,0.0)
     elseif i==Nmesh
-        cij += ifelse(j==Nmesh,3.0,0.0)
-        cij += ifelse(j==Nmesh-1,-4.0,0.0)
-        cij += ifelse(j==Nmesh-2,1.0,0.0)
+        cij += ifelse(j==Nmesh-1,-1.0,0.0)
     else
         cij += ifelse(j==i+1,1.0,0.0)
         cij += ifelse(j==i-1,-1.0,0.0)
@@ -191,18 +189,13 @@ function calc_cij2(i,j,h)
     return cij
 end
 
-function calc_dij2(i,j,h)
+function calc_dij2(i,j,h,l)
     dij = 0.0
     if i==1
-        dij += ifelse(j==1,2.0,0.0)
-        dij += ifelse(j==2,-5.0,0.0)
-        dij += ifelse(j==3,4.0,0.0)
-        dij += ifelse(j==4,-1.0,0.0)
+        dij += ifelse(j==1,(-1)^(l+1)-2,0.0)
+        dij += ifelse(j==2,1.0,0.0)
     elseif i==Nmesh
-        dij += ifelse(j==Nmesh,2.0,0.0)
-        dij += ifelse(j==Nmesh-1,-5.0,0.0)
-        dij += ifelse(j==Nmesh-2,4.0,0.0)
-        dij += ifelse(j==Nmesh-3,-1.0,0.0)
+        dij += ifelse(j==Nmesh-1,1.0,0.0)
     else
         dij += ifelse(j==i+1,1.0,0.0)
         dij += ifelse(j==i,-2.0,0.0)
@@ -213,15 +206,15 @@ function calc_dij2(i,j,h)
 end
 
 #functionに入れる段階でBは決めておく
-function MakeHmat(A,B,C,rmesh)
+function MakeHmat(A,B,C,rmesh,l)
     Hmat=spzeros(Nmesh,Nmesh)
     h=rmesh[2]-rmesh[1]
 
     for row in 1:Nmesh
         Hmat[row,row]+=C[row]
         for col in max(row-3,1):min(row+3,Nmesh)
-            cij=calc_cij2(row,col,h)
-            dij=calc_dij2(row,col,h)
+            cij=calc_cij2(row,col,h,l)
+            dij=calc_dij2(row,col,h,l)
             if cij!=0.0 || dij!=0.0
                 Hmat[row,col]+=A[row]*dij+B[row]*cij
             end
@@ -252,18 +245,24 @@ function CalcStates(QN::QuantumNumber,h2mB,dh2mB,VB,WB,rmesh)
     @. B[:] += -dh2mB[:]
     @. C[:] += h2mB[:]*l*(l+1)/(rmesh[:]^2) + VB[:] + dh2mB[:]/rmesh[:] + WB[:]/rmesh[:]*(j*(j+1)-l*(l+1)-0.75)
 
+    
+    Hmat=MakeHmat(A,B,C,rmesh,l)
 
-    Hmat=MakeHmat(A,B,C,rmesh)
+    #=
+    E,ψ=eigen(Hmat+zeros(Float64,Nmesh,Nmesh))
+    E=real(E)
+    ψ=real(ψ)
+    =#
+
     for i in 1:Nmesh
         Hmat[i,i]+=offset
     end
-
-    E,ψ=eigs(Hmat,nev=nmax,which=:SR,maxiter=3000)
-    
+    E,ψ=eigs(Hmat,nev=nmax,which=:SR,maxiter=5000)
     E=real(E.-offset)
-    for i=eachindex(E)
+    ψ=real(ψ)
+    for i in 1:nmax
         Norm=NormFact(rmesh,real(ψ[:,i]))
-        @. ψ[:,i]=real(ψ[:,i])/Norm
+        @. ψ[:,i]=sign(ψ[2,i]-ψ[1,i])*Norm*real(ψ[:,i])
         if i>1 && E[i-1]!=E[i]
             push!(States,SingleParticleState(QN,real(E[i]),ψ[:,i]))
         end
@@ -290,17 +289,17 @@ function CalcAllStates(h2m,dh2m,V,W,rmesh)
 end
 
 function Calc_occ(AN::AtomNum,AllStates;BCS=false)
-    Remain=AtomNum
     Allocc=[Float64[],Float64[],Float64[]]
+    Remain=[AN.Z,AN.N,AN.Λ]
     if BCS==false
         for b in 1:3
-            for i in 1:length(AllStates[b])
+            for i=eachindex(AllStates[b])
                 j=AllStates[b][i].QN.j
                 if Remain[b]>=(2*j+1)
-                    push!(occ[b],1)
+                    push!(Allocc[b],1)
                     Remain[b]-=2*j+1
                 else
-                    push!(occ[b],Remain[b]/(2*j+1))
+                    push!(Allocc[b],Remain[b]/(2*j+1))
                     Remain[b]=0
                 end
             end
@@ -376,7 +375,7 @@ function Calc_Density(Allocc,AllStates)
         Lapρ3[b,:]=Calc_Lapρ(Allocc[b],AllStates[b],rmesh)
         τ3[b,:]=Calc_τ(Allocc[b],AllStates[b],rmesh)
         J3[b,:]=Calc_J(Allocc[b],AllStates[b],rmesh)
-        divJ3[b,:]=Calc_divJ(J,rmesh)
+        divJ3[b,:]=Calc_divJ(J3[b,:],rmesh)
     end
 
     return ρ3,dρ3,Lapρ3,τ3,J3,divJ3

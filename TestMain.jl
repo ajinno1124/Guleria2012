@@ -2,7 +2,8 @@ include("Main.jl")
 using Plots
 
 AN=AtomNum(82,126,1) #lead
-#AN=AtomNum(8,8,1) #oxigen
+#AN=AtomNum(8,8,0) #oxigen
+#AN=AtomNum(2,2,0) #alpha
 
 function TestInitPot()
     rmesh=getrmesh()
@@ -81,11 +82,13 @@ end
 function TestInitialCondition()
     
     InitState=InitialCondition(AN)
+    Initocc=Calc_occ(AN,InitState)
     for i=eachindex(InitState[1])
+        occ=Initocc[1][i]
         l=InitState[1][i].QN.l
         j=InitState[1][i].QN.j
         E=InitState[1][i].E
-        println("(l,j,E)=($l,$j,$E)")
+        println("(occ,l,j,E)=($occ,$l,$j,$E)")
     end
     
     #proton波動関数をプロット
@@ -94,11 +97,27 @@ function TestInitialCondition()
     for i=eachindex(InitState[1])
     #for i=1:2
         if InitState[1][i].E<0
-            l=InitState[1][i].QN.l
-            j=InitState[1][i].QN.j
+        l=InitState[1][i].QN.l
+        j=InitState[1][i].QN.j
+        #if l==lmax
             plot!(rmesh,InitState[1][i].ψ,label="(l,j)=($l,$j)")
         end
     end
     #println(InitState[1][1].ψ)
     plot!()
+end
+
+function TestDensity()
+    @time InitState=InitialCondition(AN)
+    Initocc=Calc_occ(AN,InitState)
+    rmesh=getrmesh()
+
+    @time ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Initocc,InitState)
+
+    Checkρ=MyLib.IntTrap(rmesh,@. 4*π*rmesh[:]^2*ρ3[1,:])
+    println("check Z=$(AN.Z): Integrate ρ=$(Checkρ)")
+    plot(xlabel="r",ylabel="Density")
+    plot!(rmesh,ρ3[1,:],label="density")
+    plot!(rmesh,τ3[1,:],label="tau")
+    plot!(rmesh,J3[1,:],label="J")
 end
