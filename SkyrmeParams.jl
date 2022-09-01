@@ -23,7 +23,7 @@ module NuclParameters
             x1=-0.344
             x2=-1.000
             x3=1.354
-            σ=1/6
+            σ=1/3
             W0=123.0
         end
 
@@ -91,7 +91,7 @@ module NuclParameters
         p=getParams(ParamType)
         aN[1]=0.25*p.t0*(2+p.x0)
         aN[2]=-0.25*p.t0*(2*p.x0+1)
-        aN[3]=1/24*p.t3*(2*p.x3)
+        aN[3]=1/24*p.t3*(2+p.x3)
         aN[4]=-1/24*p.t3*(2*p.x3+1)
         aN[5]=1/8*(p.t1*(2+p.x1)+p.t2*(2+p.x2))
         aN[6]=1/8*(p.t2*(2*p.x2+1)-p.t1*(2*p.x1+1))

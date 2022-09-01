@@ -17,12 +17,12 @@ using .MyLib
     ħc=197.3269804
     e2MeVfm=1.4400 
 
-    Nmesh=500
-    rmax=25
-    nmax=5
+    Nmesh=1000
+    rmax=30
+    nmax=4
     lmax=6
 
-    offset=100 #Sparse Matrixを計算する際のoffset
+    offset=1000 #Sparse Matrixを計算する際のoffset
 end
 
 mutable struct QuantumNumber
@@ -68,13 +68,12 @@ function Calc_dρ(ρ,rmesh)
     return dρ
 end
 
-function Calc_Lapρ(occ,States::Vector{SingleParticleState},rmesh)
+function Calc_Lapρ(ρ::Vector{Float64},rmesh)
     Lapρ=zeros(Float64,Nmesh)
-    ρ=Calc_ρ(occ,States,rmesh)
     h=rmesh[2]-rmesh[1]
     dρ=MyLib.diff1st(h,ρ)
     ddρ=MyLib.diff2nd(h,ρ)
-    @. Lapρ=2/rmesh[:]*dρ + ddρ
+    @. Lapρ[:]=2/rmesh[:]*dρ[:] + ddρ[:]
     return Lapρ
 end
 
@@ -102,56 +101,57 @@ function Calc_J(occ,States::Vector{SingleParticleState},rmesh)
     return J
 end
 
-function Calc_divJ(J,rmesh)
+function Calc_divJ(J::Vector{Float64},rmesh)
     divJ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
     dJdr=MyLib.diff1st(h,J)
     @. divJ+=dJdr[:]+2/rmesh[:]*J[:]
     return divJ
 end
-function Calc_h2mΛ(aΛ,ρN)
+function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
     return @. ħc^2/(2*mΛMeV)+aΛ[2]*ρN
 end
 
-function Calc_h2mN(B,aN,aΛ,ρN,ρq,ρΛ)
+function Calc_h2mN(B,aN,aΛ,ρN::Vector{Float64},ρq::Vector{Float64},ρΛ::Vector{Float64})
     m=0.0
     if B==1 #proton
         m+=mnMeV
     elseif B==2 #neutron
         m+=mpMeV
     end
-    return @. ħc^2/(2*m)+aN[5]*ρN+aN[6]*ρq+aΛ[2]*ρΛ
+    return @. ħc^2/(2*m)+aN[5]*ρN[:]+aN[6]*ρq[:]+aΛ[2]*ρΛ[:]
 end
 
-function Calc_VΛΛ(aΛ,γ,ρN,LapρN,τN)
+function Calc_VΛΛ(aΛ,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64})
     return @. aΛ[1]*ρN+aΛ[2]*τN-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
 end
 
-function Calc_VΛN(aΛ,γ,ρN,ρΛ,LapρΛ,τΛ,)
+function Calc_VΛN(aΛ,γ,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64})
     return @. aΛ[1]*ρΛ+aΛ[2]*τΛ-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
 end
 
 function Calc_VNq(aN,σ,W0,ρN,ρq,τN,τq,LapρN,Lapρq,divJN,divJq)
     ans=zeros(Float64,Nmesh)
-    @. ans+=2*aN[1]*ρN + 2*aN[2]*ρq + (σ+2)*aN[3]*ρN^(σ+1)
-    @. ans+=aN[4]*(σ*ρN^(σ-1)*(ρq^2+(ρN-ρq)^2)+2*(ρN^σ)*ρq)
-    @. ans+=aN[5]*τN+aN[6]*τq-2*aN[7]*LapρN
-    @. ans+=-2*aN[8]*Lapρq-0.5*W0*(divJN+divJq)
+    @. ans[:]+=2*aN[1]*ρN[:] + 2*aN[2]*ρq[:] + (σ+2)*aN[3]*ρN[:]^(σ+1)
+    @. ans[:]+=aN[4]*(σ*ρN[:]^(σ-1)*(ρq[:]^2+(ρN[:]-ρq[:])^2)+2*(ρN[:]^σ)*ρq[:])
+    @. ans[:]+=aN[5]*τN[:]+aN[6]*τq[:]-2*aN[7]*LapρN[:]
+    @. ans[:]+=-2*aN[8]*Lapρq[:]-0.5*W0*(divJN[:]+divJq[:])
     return ans
 end
 
-function Calc_Vcoul(ρp,rmesh,Z)
+function Calc_Vcoul(ρp::Vector{Float64},rmesh,Z)
     Vcoul=zeros(Float64,Nmesh)
     Vcoul+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
+    @. Vcoul[:]=Vcoul[:]/rmesh[:]
     @. Vcoul[:]+=-(3*ρp[:]/π)^(1/3)
-    Voul*=e2MeVfm
+    Vcoul*=e2MeVfm
 
     return Vcoul
     
 end
 
-function Calc_Wq(aN,dρN,dρq,JN,Jq)
-    return @. 0.5*(dρN+dρq)+2*aN[9]*JN+2*aN[10]*Jq
+function Calc_Wq(aN,W0,dρN::Vector{Float64},dρq::Vector{Float64},JN::Vector{Float64},Jq::Vector{Float64})
+    return @. 0.5*W0*(dρN[:]+dρq[:])+2*aN[9]*JN[:]+2*aN[10]*Jq[:]
 end
 
 #Ay"+By'+Cy=ϵy
@@ -177,8 +177,11 @@ end
 function calc_cij2(i,j,h,l)
     cij = 0.0
     if i==1
-        cij += ifelse(j==1,(-1)^l,0.0)
+        cij += ifelse(j==1,2.0,0.0)
         cij += ifelse(j==2,2.0/3.0,0.0)
+
+        #cij += ifelse(j==1,(-1)^l,0.0)
+        #cij += ifelse(j==2,1.0,0.0)
     elseif i==Nmesh
         cij += ifelse(j==Nmesh-1,-1.0,0.0)
     else
@@ -192,8 +195,8 @@ end
 function calc_dij2(i,j,h,l)
     dij = 0.0
     if i==1
-        dij += ifelse(j==1,(-1)^(l+1)-2,0.0)
-        dij += ifelse(j==2,1.0,0.0)
+        dij += ifelse(j==1,-4.0,0.0)
+        dij += ifelse(j==2,4.0/3.0,0.0)
     elseif i==Nmesh
         dij += ifelse(j==Nmesh-1,1.0,0.0)
     else
@@ -257,15 +260,13 @@ function CalcStates(QN::QuantumNumber,h2mB,dh2mB,VB,WB,rmesh)
     for i in 1:Nmesh
         Hmat[i,i]+=offset
     end
-    E,ψ=eigs(Hmat,nev=nmax,which=:SR,maxiter=5000)
+    E,ψ=eigs(Hmat,nev=nmax,which=:SM,maxiter=10000)
     E=real(E.-offset)
     ψ=real(ψ)
     for i in 1:nmax
         Norm=NormFact(rmesh,real(ψ[:,i]))
         @. ψ[:,i]=sign(ψ[2,i]-ψ[1,i])*Norm*real(ψ[:,i])
-        if i>1 && E[i-1]!=E[i]
-            push!(States,SingleParticleState(QN,real(E[i]),ψ[:,i]))
-        end
+        push!(States,SingleParticleState(QN,real(E[i]),ψ[:,i]))
     end
 
     return States
@@ -356,8 +357,23 @@ function InitialCondition(AN::AtomNum)
     return InitState
 end
 
-function CheckConvergence(OldStates::Vector{SingleParticleState},NewStates::Vector{SingleParticleState};rtol=1e-4)
-    
+function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-2)
+    check=true
+    diffρ=zeros(Float64,3)
+    for b in 1:3
+        ρold=Calc_ρ(Oldocc[b],OldStates[b],rmesh)
+        ρnew=Calc_ρ(Newocc[b],NewStates[b],rmesh)
+        #diffρ[b]=MyLib.IntTrap(rmesh,@. (4*π*rmesh[:]^2*(ρold[:]-ρnew[:])))
+        diffρ[b]=MyLib.IntTrap(rmesh,(@. ((ρold[:]-ρnew[:])/(ρold[:]+ρnew[:]))^2))
+        if abs(diffρ[b])>rtol
+            check=false
+        end
+    end
+
+    println("diffρ=($(diffρ[1]),$(diffρ[2]),$(diffρ[3]))")
+
+    return check
+
 end
 
 function Calc_Density(Allocc,AllStates)
@@ -372,7 +388,7 @@ function Calc_Density(Allocc,AllStates)
     for b in 1:3
         ρ3[b,:]=Calc_ρ(Allocc[b],AllStates[b],rmesh)
         dρ3[b,:]=Calc_dρ(ρ3[b,:],rmesh)
-        Lapρ3[b,:]=Calc_Lapρ(Allocc[b],AllStates[b],rmesh)
+        Lapρ3[b,:]=Calc_Lapρ(ρ3[b,:],rmesh)
         τ3[b,:]=Calc_τ(Allocc[b],AllStates[b],rmesh)
         J3[b,:]=Calc_J(Allocc[b],AllStates[b],rmesh)
         divJ3[b,:]=Calc_divJ(J3[b,:],rmesh)
@@ -381,15 +397,31 @@ function Calc_Density(Allocc,AllStates)
     return ρ3,dρ3,Lapρ3,τ3,J3,divJ3
 end
 
+function Calc_Density2(Allocc,AllStates)
+    ρ3=zeros(Float64,(3,Nmesh))
+    τ3=zeros(Float64,(3,Nmesh))
+    J3=zeros(Float64,(3,Nmesh))
+    rmesh=getrmesh()
+
+    for b in 1:3
+        ρ3[b,:]=Calc_ρ(Allocc[b],AllStates[b],rmesh)
+        τ3[b,:]=Calc_τ(Allocc[b],AllStates[b],rmesh)
+        J3[b,:]=Calc_J(Allocc[b],AllStates[b],rmesh)
+    end
+
+    return ρ3,τ3,J3
+end
+
 function Calc_Coef(occ,AllStates,aN,aΛ,pN,pΛ,Z)
     rmesh=getrmesh()
 
     ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(occ,AllStates)
-    ρN=ρ3[1]+ρ3[2]
-    dρN=dρ3[1]+dρ3[2]
-    LapρN=Lapρ3[1]+Lapρ3[2]
-    JN=J3[1]+J[2]
-    divJN=divJ3[1]+divJ3[2]
+    ρN=ρ3[1,:]+ρ3[2,:]
+    dρN=dρ3[1,:]+dρ3[2,:]
+    LapρN=Lapρ3[1,:]+Lapρ3[2,:]
+    τN=τ3[1,:]+τ3[2,:]
+    JN=J3[1,:]+J3[2,:]
+    divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
     h2m=zeros(Float64,(3,Nmesh))
@@ -398,58 +430,129 @@ function Calc_Coef(occ,AllStates,aN,aΛ,pN,pΛ,Z)
     W=zeros(Float64,(3,Nmesh))
 
     VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN)
-    VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3],Lapρ3[3],τ3[3])
-    VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1], τN, τ3[1],LapρN,Lapρ3[1],divJN,divJ3[1])
-    VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2], τN, τ3[2],LapρN,Lapρ3[2],divJN,divJ3[2])
-    Vcoul=Calc_Vcoul(ρp,rmesh,Z)
+    VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:])
+    VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
+    VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
+    Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,Z)
 
     for b in 1:3
         if b==1 #proton
-            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b],ρ3[3])
+            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
             dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
             V[b,:]+=VΛN+VNp+Vcoul
-            W[b,:]+=Calc_Wq(aN,dρN,dρ3[b],JN,J3[b])
+            W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==2 #neutron
-            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b],ρ3[3])
+            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
             dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
             V[b,:]+=VΛN+VNn
-            W[b,:]+=Calc_Wq(aN,dρN,dρ3[b],JN,J3[b])
+            W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==3 #Lambda
             h2m[b,:]+=Calc_h2mΛ(aΛ,ρN)
             dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
             V[b,:]+=VΛΛ
-            W[b,:]+=0
+            @. W[b,:]+=0
         end
     end
 
     return h2m,dh2m,V,W
 end
 
-function HF_iter(AN::AtomNum;MaxIter=10,NParamType="SLy4",ΛParamType="HPΛ1")
+function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
+    dρ3=zeros(Float64,(3,Nmesh))
+    Lapρ3=zeros(Float64,(3,Nmesh))
+    divJ3=zeros(Float64,(3,Nmesh))
+    rmesh=getrmesh()
+
+    for b in 1:3
+        dρ3[b,:]=Calc_dρ(ρ3[b,:],rmesh)
+        Lapρ3[b,:]=Calc_Lapρ(ρ3[b,:],rmesh)
+        divJ3[b,:]=Calc_divJ(J3[b,:],rmesh)
+    end
+
+    ρN=ρ3[1,:]+ρ3[2,:]
+    dρN=dρ3[1,:]+dρ3[2,:]
+    LapρN=Lapρ3[1,:]+Lapρ3[2,:]
+    τN=τ3[1,:]+τ3[2,:]
+    JN=J3[1,:]+J3[2,:]
+    divJN=divJ3[1,:]+divJ3[2,:]
+    h=rmesh[2]-rmesh[1]
+
+    h2m=zeros(Float64,(3,Nmesh))
+    dh2m=zeros(Float64,(3,Nmesh))
+    V=zeros(Float64,(3,Nmesh))
+    W=zeros(Float64,(3,Nmesh))
+
+    VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN)
+    VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:])
+    VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
+    VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
+    Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,Z)
+
+    for b in 1:3
+        if b==1 #proton
+            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
+            dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
+            V[b,:]+=VΛN+VNp+Vcoul
+            W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
+        elseif b==2 #neutron
+            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
+            dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
+            V[b,:]+=VΛN+VNn
+            W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
+        elseif b==3 #Lambda
+            h2m[b,:]+=Calc_h2mΛ(aΛ,ρN)
+            dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
+            V[b,:]+=VΛΛ
+            @. W[b,:]+=0
+        end
+    end
+
+    return h2m,dh2m,V,W
+end
+
+function HF_iter(AN::AtomNum;MaxIter=60,NParamType="SLy4",ΛParamType="HPΛ1")
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
     rmesh=getrmesh()
+    Oldρ3,Oldτ3,OldJ3=Calc_Density2(Oldocc,OldStates)
 
     aN=NuclParameters.getaN(NParamType)
     aΛ=LambdaParameters.getaΛ(ΛParamType)
     pN=NuclParameters.getParams(NParamType)
     pΛ=LambdaParameters.getParams(ΛParamType)
 
+    #for debug
+    ρptest=zeros(Float64,(MaxIter,Nmesh))
+
     #calc several params
     for i in 1:MaxIter
-        h2m,dh2m,V,W=Calc_Coef(Oldocc,AllStates,aN,aΛ,pN,pΛ,Z)
+        #for debug
+        ρptest[i,:]=Calc_ρ(Oldocc[1],OldStates[1],rmesh)
+
+        h2m,dh2m,V,W=Calc_Coef(Oldρ3,Oldτ3,OldJ3,aN,aΛ,pN,pΛ,AN.Z)
+
         NewStates=CalcAllStates(h2m,dh2m,V,W,rmesh)
         Newocc=Calc_occ(AN,NewStates)
+        Newρ3,Newτ3,NewJ3=Calc_Density2(Newocc,NewStates)
         
-        if CheckConvergence(OldStates,NewStates)==true
-            break
+        if CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh)==true
+            return Newocc,NewStates
+            #break
         end
-
+        println(i)
         OldStates=NewStates
         Oldocc=Newocc
+        Oldρ3=(Oldρ3*i+Newρ3)/(i+1)
+        Oldτ3=(Oldτ3*i+Newτ3)/(i+1)
+        OldJ3=(OldJ3*i+NewJ3)/(i+1)
     end
 
-    return NewStates
+    plot(xlabel="r",ylabel="ρn")
+    for i in 1:MaxIter
+        plot!(rmesh,ρptest[i,:],label="$i")
+    end
+    plot!()
+
 end
 
 
