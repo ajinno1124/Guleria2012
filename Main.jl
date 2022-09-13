@@ -17,7 +17,8 @@ using .MyLib
     ħc=197.3269804
     e2MeVfm=1.4400 
 
-    Nmesh=1000
+    Nmesh=5000
+    Nmatch=2000
     rmax=30
     nmax=4
     lmax=6
@@ -44,15 +45,12 @@ mutable struct AtomNum
 end
 
 function getrmesh()
-    h=rmax/(Nmesh-0.5)
-    rmesh=range(0.5*h, (Nmesh-0.5)*h, length=Nmesh)
-
-    #rmesh=range(1e-1,rmax,length=Nmesh)
+    rmesh=range(1e-2,rmax,length=Nmesh)
     return rmesh
 end
 
 ##########################################################
-# make Hamiltonian matrix
+# Defenition of Density, Potential
 function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
     ρ=zeros(Float64,Nmesh)
     for i in 1:length(occ)
@@ -154,83 +152,68 @@ function Calc_Wq(aN,W0,dρN::Vector{Float64},dρq::Vector{Float64},JN::Vector{Fl
     return @. 0.5*W0*(dρN[:]+dρq[:])+2*aN[9]*JN[:]+2*aN[10]*Jq[:]
 end
 
-#Ay"+By'+Cy=ϵy
-#=
-function CoefA(h2mVal)
-    return -h2mVal
+
+##########################################################
+# Euler Method
+function Euler2(y,A,B,h)
+	ynext=(1-h*A)*y+h*B
+	return ynext
 end
 
-function CoefB(dh2mVal)
-    return dh2mVal
+#v'=u
+function DiffEqOfv(v,u,h)
+	A=
+	B=u
+	return Euler2(v,A,B,h)
 end
 
-function CoefC(h2mVal,dh2mVal,Vq,Wq,QN::QuantumNumber)
-    ans=zeros(Float64,Nmesh)
-    rmesh=getrmesh()
-    @. ans+=h2mVal*QN.l*(QN.l+1)/rmesh
-    @. ans+=Vq
-    @. ans+=Wq/rmesh*(QN.j*(QN.j+1)-QN.l*(QN.l+1)-0.75)
-    return ans
-end
-=#
-
-function calc_cij2(i,j,h,l)
-    cij = 0.0
-    if i==1
-        cij += ifelse(j==1,2.0,0.0)
-        cij += ifelse(j==2,2.0/3.0,0.0)
-
-        #cij += ifelse(j==1,(-1)^l,0.0)
-        #cij += ifelse(j==2,1.0,0.0)
-    elseif i==Nmesh
-        cij += ifelse(j==Nmesh-1,-1.0,0.0)
-    else
-        cij += ifelse(j==i+1,1.0,0.0)
-        cij += ifelse(j==i-1,-1.0,0.0)
-    end
-    cij = cij/(2*h)
-    return cij
+#
+function DiffEqOfu(u,v,E,V,r,l,h)
+    A=
+	B=-(2*mAveMeV*(E-V)/ħc^2-l*(l+1)/r^2)*v
+	return Euler2(u,A,B,h)
 end
 
-function calc_dij2(i,j,h,l)
-    dij = 0.0
-    if i==1
-        dij += ifelse(j==1,-4.0,0.0)
-        dij += ifelse(j==2,4.0/3.0,0.0)
-    elseif i==Nmesh
-        dij += ifelse(j==Nmesh-1,1.0,0.0)
-    else
-        dij += ifelse(j==i+1,1.0,0.0)
-        dij += ifelse(j==i,-2.0,0.0)
-        dij += ifelse(j==i-1,1.0,0.0)
-    end
-    dij = dij/(h^2)
-    return dij
-end
-
-#functionに入れる段階でBは決めておく
-function MakeHmat(A,B,C,rmesh,l)
-    Hmat=spzeros(Nmesh,Nmesh)
+function InitCondEuler(l,E,rmesh)
     h=rmesh[2]-rmesh[1]
+    vin1=rmesh[1]^(l+1)
+    uin1=(l+1)*rmesh[1]^l
+    vout2=exp(-(-2*mAveMeV/ħc^2*E)^0.5*rmesh[Nmesh])
+    uout2=-(-2*mAveMeV/ħc^2*E)^0.5*exp(-(-2*mAveMeV/ħc^2*E)^0.5*rmesh[Nmesh])
+    return vin1,uin1,vout2,uout2 #あとでnormalizeする。
+end
 
-    for row in 1:Nmesh
-        Hmat[row,row]+=C[row]
-        for col in max(row-3,1):min(row+3,Nmesh)
-            cij=calc_cij2(row,col,h,l)
-            dij=calc_dij2(row,col,h,l)
-            if cij!=0.0 || dij!=0.0
-                Hmat[row,col]+=A[row]*dij+B[row]*cij
-            end
-        end
+function ShootingEuler(l,E,V::Vector{Float64},rmesh)
+    vin=zeros(Float64,2)
+    vout=zeros(Float64,2)
+    uin=zeros(Float64,2)
+    uout=zeros(Float64,2)
 
+    rmesh=getrmesh()
+    h=rmesh[2]-rmesh[1]
+    vin[1],uin[1],vout[2],uout[2]=InitCondEuler(l,E,rmesh)
+
+    for i in 1:Nmatch-1
+        vin[2]=DiffEqOfv(vin[1],uin[1],h)
+        uin[2]=DiffEqOfu(uin[1],vin[1],E,V[i],rmesh[i],l,h)
+        vin[1]=vin[2]
+        uin[1]=uin[2]
     end
 
-    return Hmat
+    for i in Nmesh:-1:Nmatch-1
+        vout[1]=DiffEqOfv(vout[2],uout[2],-h)
+        uout[1]=DiffEqOfu(uout[2],vout[2],E,V[i],rmesh[i],l,-h)
+        vout[2]=vout[1]
+        uout[2]=uout[1]
+    end
+
+    return vin[1]*uout[1]-vout[1]*uin[1]
+    
 end
+
 
 ##########################################################
 # HF iteration
-
 function NormFact(rmesh,ψ)
     ans=sqrt(MyLib.IntTrap(rmesh,@. ψ[:]^2))
     return 1/ans
@@ -249,21 +232,8 @@ function CalcStates(QN::QuantumNumber,h2mB,dh2mB,VB,WB,rmesh)
     @. C[:] += h2mB[:]*l*(l+1)/(rmesh[:]^2) + VB[:] + dh2mB[:]/rmesh[:] + WB[:]/rmesh[:]*(j*(j+1)-l*(l+1)-0.75)
 
     
-    Hmat=MakeHmat(A,B,C,rmesh,l)
-
-    #=
-    E,ψ=eigen(Hmat+zeros(Float64,Nmesh,Nmesh))
-    E=real(E)
-    ψ=real(ψ)
-    =#
-
-    for i in 1:Nmesh
-        Hmat[i,i]+=offset
-    end
-    E,ψ=eigs(Hmat,nev=nmax,which=:SM,maxiter=10000)
-    E=real(E.-offset)
-    ψ=real(ψ)
     for i in 1:nmax
+        E,ψ=
         Norm=NormFact(rmesh,real(ψ[:,i]))
         @. ψ[:,i]=sign(ψ[2,i]-ψ[1,i])*Norm*real(ψ[:,i])
         push!(States,SingleParticleState(QN,real(E[i]),ψ[:,i]))
@@ -297,7 +267,7 @@ function Calc_occ(AN::AtomNum,AllStates;BCS=false)
             for i=eachindex(AllStates[b])
                 j=AllStates[b][i].QN.j
                 if Remain[b]>=(2*j+1)
-                    push!(Allocc[b],1)
+                    push!(Allocc[b],1.0)
                     Remain[b]-=2*j+1
                 else
                     push!(Allocc[b],Remain[b]/(2*j+1))
@@ -331,11 +301,11 @@ function InitPot(AN::AtomNum,rmesh)
         if b==1 #proton
             @. h2m[b,:]+=ħc^2/(2*mpMeV)
             @. V[b,:]+=Vcoef[b]/(1+exp((rmesh[:]-R)/a))
-            @. W[b,:]+=(0.22*Vcoef[b,:]*r0^2/a)*(exp((rmesh[:]-R)/a)/(1+exp((rmesh[:]-R)/a))^2)
+            @. W[b,:]+=(0.22*Vcoef[b]*r0^2/a)*(exp((rmesh[:]-R)/a)/(1+exp((rmesh[:]-R)/a))^2)
         elseif b==2
             @. h2m[b,:]+=ħc^2/(2*mnMeV)
             @. V[b,:]+=Vcoef[b]/(1+exp((rmesh[:]-R)/a))
-            @. W[b,:]+=(0.22*Vcoef[b,:]*r0^2/a)*(exp((rmesh[:]-R)/a)/(1+exp((rmesh[:]-R)/a))^2)
+            @. W[b,:]+=(0.22*Vcoef[b]*r0^2/a)*(exp((rmesh[:]-R)/a)/(1+exp((rmesh[:]-R)/a))^2)
         elseif b==3
             @. h2m[b,:]+=ħc^2/(2*mΛMeV)
             @. V[b,:]+=Vcoef[b]/(1+exp((rmesh[:]-R)/a))
@@ -542,9 +512,10 @@ function HF_iter(AN::AtomNum;MaxIter=60,NParamType="SLy4",ΛParamType="HPΛ1")
         println(i)
         OldStates=NewStates
         Oldocc=Newocc
-        Oldρ3=(Oldρ3*i+Newρ3)/(i+1)
-        Oldτ3=(Oldτ3*i+Newτ3)/(i+1)
-        OldJ3=(OldJ3*i+NewJ3)/(i+1)
+        α=0.1
+        Oldρ3=Oldρ3*(1-α)+Newρ3*α
+        Oldτ3=Oldτ3*(1-α)+Newτ3*α
+        OldJ3=OldJ3*(1-α)+NewJ3*α
     end
 
     plot(xlabel="r",ylabel="ρn")
