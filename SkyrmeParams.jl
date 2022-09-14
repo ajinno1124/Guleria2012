@@ -23,7 +23,7 @@ module NuclParameters
             x1=-0.344
             x2=-1.000
             x3=1.354
-            σ=1/3
+            σ=1/6
             W0=123.0
         end
 

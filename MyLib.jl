@@ -12,7 +12,7 @@ module MyLib
     function diff1st(h::Float64,y::AbstractArray)
         N=length(y)
         dydx=zeros(Float64,N)
-        #dydreturn NewStatesx[1]=(y[2]-y[1])/h # order(h)
+        #dydx[1]=(y[2]-y[1])/h # order(h)
         dydx[1]=(-y[3]+4*y[2]-3*y[1])/(2*h) #order(h^2)
         for i in 2:N-1
             dydx[i]=(y[i+1]-y[i-1])/(2*h)
@@ -26,6 +26,7 @@ module MyLib
     function diff2nd(h::Float64,y::AbstractArray)
         N=length(y)
         ddyddx=zeros(Float64,N)
+        #ddyddx[1]=(y[2]-2*y[1])/(h^2)
         ddyddx[1]=(2*y[1]-5*y[2]+4*y[3]-y[4])/(h^2)
         for i in 2:N-1
             ddyddx[i]=(y[i+1]-2*y[i]+y[i-1])/(h^2)
@@ -42,9 +43,11 @@ module MyLib
         N=length(rmesh)
         U=zeros(Float64,N)
         h=rmesh[2]-rmesh[1]
+
+        #mesh for h:h:...
         U[1]=rmesh[1]
-        U[2]=3*U[1]-h^2*4*π*rmesh[2]*ρ[2]
-        #U[2]=U[1]-h^2*4*π*rmesh[2]*ρ[2]
+        U[2]=2*U[1]-h^2*4*π*rmesh[1]*ρ[1]
+
         for i in 2:N-1
             U[i+1]=2*U[i]-U[i-1]-h^2*4*π*rmesh[i]*ρ[i]
         end
@@ -52,8 +55,35 @@ module MyLib
         #adjust the value by adding the solution of U''=0 (U=αr)
         α=(U[N]-qmax)/rmesh[N]
         @. U[:]-=α*rmesh[:]
+        println(α)
 
         return U
+    end
+
+    #using isnan() to check the convergence
+    function MyBisect(GivenLow, GivenUp, F::Function, args;rtol=1e-4)
+        @assert GivenLow<GivenUp
+    
+        low=GivenLow
+        up=GivenUp
+        Flow=F(low,args...)
+        Fup=F(up,args...)
+        
+        while abs((low-up)/(low+up)) > rtol
+            if Flow*Fup>0
+                return NaN
+            else
+                mean=(low+up)/2
+                Fmean=F(mean,args...)
+                if Fmean*Flow<0
+                    up=mean
+                else
+                    low=mean
+                end
+            end
+        end
+    
+        return (up+low)/2
     end
 
 end
