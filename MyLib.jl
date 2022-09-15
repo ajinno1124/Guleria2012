@@ -12,8 +12,8 @@ module MyLib
     function diff1st(h::Float64,y::AbstractArray)
         N=length(y)
         dydx=zeros(Float64,N)
-        #dydx[1]=(y[2]-y[1])/h # order(h)
-        dydx[1]=(-y[3]+4*y[2]-3*y[1])/(2*h) #order(h^2)
+        dydx[1]=(y[2]-y[1])/h # order(h)
+        #dydx[1]=(-y[3]+4*y[2]-3*y[1])/(2*h) #order(h^2)
         for i in 2:N-1
             dydx[i]=(y[i+1]-y[i-1])/(2*h)
         end
@@ -55,7 +55,6 @@ module MyLib
         #adjust the value by adding the solution of U''=0 (U=αr)
         α=(U[N]-qmax)/rmesh[N]
         @. U[:]-=α*rmesh[:]
-        println(α)
 
         return U
     end

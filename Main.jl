@@ -2,8 +2,6 @@ include("SkyrmeParams.jl")
 include("MyLib.jl")
 using Parameters
 using LinearAlgebra
-using SparseArrays
-using Arpack
 using .NuclParameters
 using .LambdaParameters
 using .MyLib
@@ -17,8 +15,8 @@ using .MyLib
     ħc=197.3269804
     e2MeVfm=1.4400 
 
-    Nmesh=300
-    Nmatch=75
+    Nmesh=4000
+    Nmatch=1200
     rmax=30
     nmax=4
     lmax=6
@@ -118,32 +116,24 @@ function CalcABC(QN,h2mB,dh2mB,VB,WB,rmesh)
 end
 
 # Euler Method
-# y' + C1 y = C2
-function Euler2(y,C1,C2,h)
-	ynext=(1-h*C1)*y+h*C2
-	return ynext
+# backward difference
+# u'=v
+# v' + B/A*v = (E-C)/A*u
+function DiffEqBD(u,v,E,A,B,C,h)
+    det=1+h*B/A-h^2*(E-C)/A
+    unew=((1+h*B/A)*u + h*v)/det
+    vnew=(h*(E-C)/A*u + v)/det
+    return unew, vnew
 end
 
-#u'=v
-function DiffEqOfu(u,v,h)
-	C1=0
-	C2=v
-	return Euler2(u,C1,C2,h)
-end
 
-#v' + B/A*v = (E-C)/A*u
-function DiffEqOfv(u,v,A,B,C,E,h)
-    C1=B/A
-	C2=(E-C)/A*u
-	return Euler2(v,C1,C2,h)
-end
-
-function BoundCond(QN,E,rmesh)
+function BoundCond(QN,E,A1,B1,C1,rmesh)
     l=QN.l
     mass=getmass(QN)
     h=rmesh[2]-rmesh[1]
-    uin1=rmesh[1]^(l+1)
-    vin1=(l+1)*rmesh[1]^l
+    u0=0
+    v0=1
+    uin1,vin1=DiffEqBD(u0,v0,E,A1,B1,C1,h)
     uout2=exp(-(-2*mass/ħc^2*E)^0.5*rmesh[Nmesh])
     vout2=-(-2*mass/ħc^2*E)^0.5*exp(-(-2*mass/ħc^2*E)^0.5*rmesh[Nmesh])
     return uin1,vin1,uout2,vout2
@@ -156,18 +146,16 @@ function WronskyEuler(E,QN::QuantumNumber,A,B,C,rmesh)
     vin=zeros(Float64,2)
     uout=zeros(Float64,2)
     vout=zeros(Float64,2)
-    uin[1],vin[1],uout[2],vout[2]=BoundCond(QN,E,rmesh)
+    uin[1],vin[1],uout[2],vout[2]=BoundCond(QN,E,A[1],B[1],C[1],rmesh)
 
-    for i in 1:Nmatch-1
-        uin[2]=DiffEqOfu(uin[1],vin[1],h)
-        vin[2]=DiffEqOfv(uin[1],vin[1],A[i],B[i],C[i],E,h)
+    for i in 2:Nmatch
+        uin[2],vin[2]=DiffEqBD(uin[1],vin[1],E,A[i],B[i],C[i],h)
         uin[1]=uin[2]
         vin[1]=vin[2]
     end
 
-    for i in Nmesh:-1:Nmatch+1
-        uout[1]=DiffEqOfu(uout[2],vout[2],-h)
-        vout[1]=DiffEqOfv(uout[2],vout[2],A[i],B[i],C[i],E,-h)
+    for i in Nmesh-1:-1:Nmatch
+        uout[1],vout[1]=DiffEqBD(uout[2],vout[2],E,A[i],B[i],C[i],-h)
         uout[2]=uout[1]
         vout[2]=vout[1]
     end
@@ -189,19 +177,15 @@ function RadWaveFunc(E,QN::QuantumNumber,A,B,C,rmesh)
 
     u=zeros(Float64,Nmesh)
     v=zeros(Float64,Nmesh)
-    u=zeros(Float64,Nmesh)
-    v=zeros(Float64,Nmesh)
-    u[1],v[1],u[Nmesh],v[Nmesh]=BoundCond(QN,E,rmesh)
+    u[1],v[1],u[Nmesh],v[Nmesh]=BoundCond(QN,E,A[1],B[1],C[1],rmesh)
 
-    for i in 1:Nmatch-1
-        u[i+1]=DiffEqOfu(u[i],v[i],h)
-        v[i+1]=DiffEqOfv(u[i],v[i],A[i],B[i],C[i],E,h)
+    for i in 2:Nmatch
+        u[i],v[i]=DiffEqBD(u[i-1],v[i-1],E,A[i],B[i],C[i],h)
     end
     u[1:Nmatch]/=u[Nmatch]
 
-    for i in Nmesh:-1:Nmatch+1
-        u[i-1]=DiffEqOfu(u[i],v[i],-h)
-        v[i-1]=DiffEqOfv(u[i],v[i],A[i],B[i],C[i],E,-h)
+    for i in Nmesh-1:-1:Nmatch
+        u[i],v[i]=DiffEqBD(u[i+1],v[i+1],E,A[i],B[i],C[i],-h)
     end
     u[Nmatch:Nmesh]/=u[Nmatch]
 
@@ -280,28 +264,30 @@ function InitialCondition(AN::AtomNum)
 end
 
 ##########################################################
-# Defenition of Density, Potential
+# defene Density, Potential
 function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
     ρ=zeros(Float64,Nmesh)
-    for i in 1:length(occ)
+    for i=eachindex(occ)
         j=States[i].QN.j
         @. ρ[:]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[:]/rmesh[:])^2
     end
     return ρ
 end
 
+
 function Calc_dρ(ρ,rmesh)
     h=rmesh[2]-rmesh[1]
     dρ=MyLib.diff1st(h,ρ)
+    
     return dρ
 end
 
 function Calc_Lapρ(ρ::Vector{Float64},rmesh)
     Lapρ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
-    dρ=MyLib.diff1st(h,ρ)
+    dρ=Calc_dρ(ρ,rmesh)
     ddρ=MyLib.diff2nd(h,ρ)
-    @. Lapρ[:]=2/rmesh[:]*dρ[:] + ddρ[:]
+    @. Lapρ[:]+=2*dρ[:]/rmesh[:] + ddρ[:]
     return Lapρ
 end
 
@@ -309,10 +295,6 @@ function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
     τ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
     for i=eachindex(occ)
-        #R=States[i].ψ[:]
-        #dR=MyLib.diff1st(h,R)
-        #dR[1]=R[2]/(2*h) #R[0]=0 included explicitly
-        #dRr=(@. -R[:]/rmesh[:]^2+dR[:]/rmesh[:])
 
         dRr=MyLib.diff1st(h,(@. States[i].ψ[:]/rmesh[:]))
 
@@ -321,7 +303,7 @@ function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
         @. τ[:]+=occ[i]*(2*j+1)/(4*π)*dRr[:]^2
 
         if l>0
-        #    @. τ[:]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*(States[i].ψ[:]/rmesh[:])^2/rmesh[:]^2
+            @. τ[:]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*(States[i].ψ[:]/rmesh[:])^2/rmesh[:]^2
         end
     end
     return τ
@@ -333,7 +315,7 @@ function Calc_J(occ,States::Vector{SingleParticleState},rmesh)
         j=States[i].QN.j
         l=States[i].QN.l
         if l>0
-            @. J[:]+=occ[i]/rmesh[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[:]/rmesh[:])^2
+            @. J[:]+=occ[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[:]/rmesh[:])^2/rmesh[:]
         end
     end
     return J
@@ -343,12 +325,8 @@ function Calc_divJ(J::Vector{Float64},rmesh)
     divJ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
     dJ=MyLib.diff1st(h,J)
-    #dJ[1]=J[2]/(2*h) #include J[0]=0 explisitly
     @. divJ+=dJ[:]+2*J[:]/rmesh[:]
     return divJ
-end
-function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
-    return @. ħc^2/(2*mΛMeV)+aΛ[2]*ρN
 end
 
 ##################################################3
@@ -358,6 +336,14 @@ function Calc_h2mN(b,aN,aΛ,ρN::Vector{Float64},ρq::Vector{Float64},ρΛ::Vect
     QN=QuantumNumber(0,0,b)
     m=getmass(QN)
     return @. ħc^2/(2*m)+aN[5]*ρN[:]+aN[6]*ρq[:]+aΛ[2]*ρΛ[:]
+end
+
+function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
+    return @. ħc^2/(2*mΛMeV)+aΛ[2]*ρN
+end
+
+function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
+    return @. ħc^2/(2*mΛMeV)+aΛ[2]*ρN
 end
 
 function Calc_VΛΛ(aΛ,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64})
@@ -382,8 +368,8 @@ function Calc_Vcoul(ρp::Vector{Float64},rmesh,Z)
     Vcoul+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
     @. Vcoul[:]=Vcoul[:]/rmesh[:]
     @. Vcoul[:]+=-(3*ρp[:]/π)^(1/3)
-    #Vcoul*=e2MeVfm/2 #Chabanatの表記に合わせた
-    Vcoul*=e2MeVfm #Chabanatの表記に合わせた
+    Vcoul*=e2MeVfm/2 #Chabanat
+    #Vcoul*=e2MeVfm #Reainhard
 
     return Vcoul
     
@@ -417,19 +403,6 @@ function Calc_Density(Allocc,AllStates)
 
     return ρ3,dρ3,Lapρ3,τ3,J3,divJ3
 end
-
-#=
-function Calc_Pot(,aN,aΛ,pN,pΛ,Z)
-
-    VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN)
-    VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:])
-    VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
-    VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
-    Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,Z)
-
-    return VΛΛ, VΛN, VNp, VNn, Vcoul
-end
-=#
 
 function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
     dρ3=zeros(Float64,(3,Nmesh))
@@ -484,7 +457,7 @@ function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
     return h2m,dh2m,V,W
 end
 
-function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-6)
+function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
     check=true
     diffρ=zeros(Float64,3)
     for b in 1:3
