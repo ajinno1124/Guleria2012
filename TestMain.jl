@@ -53,7 +53,7 @@ function TestWronskyEuler()
     QN=QuantumNumber(1.5,1,b)
     A[b,:],B[b,:],C[b,:]=CalcABC(QN,h2m[b,:],dh2m[b,:],V[b,:],W[b,:],rmesh)
 
-    Erange=-100.0:0.1:-5
+    Erange=-100.0:0.1:-15
     Wronskian=zeros(Float64,length(Erange))
     for i=eachindex(Erange)
         Wronskian[i]=WronskyEuler(Erange[i],QN,A[b,:],B[b,:],C[b,:],rmesh)
@@ -89,7 +89,7 @@ function TestInitialCondition()
             #plot!(rmesh,(@. InitState[b][i].ψ[:]/rmesh[:]),label="(l,j)=($l,$j)",legend=false)
         #end
         if l==1
-            plot!(rmesh,(@. InitState[b][i].ψ[:]^2/rmesh[:]^4),label="(l,j)=($l,$j)",legend=false)
+            plot!(rmesh,(@. InitState[b][i].ψ[:]^2/rmesh[:]^3),label="(l,j)=($l,$j)",legend=false)
         end
     end
     #println(InitState[1][1].ψ)
@@ -107,7 +107,7 @@ function TestDensity()
     b=1
 
     #println(Lapρ3[b,:])
-    println(τ3[b,:])
+    #println(τ3[b,:])
 
     Checkρ=MyLib.IntTrap(rmesh,@. 4*π*rmesh[:]^2*ρ3[1,:])
     println("check Z=$(AN.Z): Integrate ρ=$(Checkρ)")
