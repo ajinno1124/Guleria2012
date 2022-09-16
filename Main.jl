@@ -18,10 +18,8 @@ using .MyLib
     Nmesh=4000
     Nmatch=1200
     rmax=30
-    nmax=4
     lmax=6
 
-    offset=1000 #Sparse Matrixを計算する際のoffset
 end
 
 mutable struct QuantumNumber
@@ -368,8 +366,8 @@ function Calc_Vcoul(ρp::Vector{Float64},rmesh,Z)
     Vcoul+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
     @. Vcoul[:]=Vcoul[:]/rmesh[:]
     @. Vcoul[:]+=-(3*ρp[:]/π)^(1/3)
-    Vcoul*=e2MeVfm/2 #Chabanat
-    #Vcoul*=e2MeVfm #Reainhard
+    #Vcoul*=e2MeVfm/2 #Chabanat
+    Vcoul*=e2MeVfm #Reainhard
 
     return Vcoul
     
@@ -476,7 +474,7 @@ function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
 
 end
 
-function HF_iter(AN::AtomNum;MaxIter=10,NParamType="SLy4",ΛParamType="HPΛ1")
+function HF_iter(AN::AtomNum;MaxIter=50,NParamType="SLy4",ΛParamType="HPL1")
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
     rmesh=getrmesh()
@@ -488,13 +486,13 @@ function HF_iter(AN::AtomNum;MaxIter=10,NParamType="SLy4",ΛParamType="HPΛ1")
     pΛ=LambdaParameters.getParams(ΛParamType)
 
     #for debug
-    ρptest=zeros(Float64,(MaxIter,Nmesh))
+    #ρptest=zeros(Float64,(MaxIter,Nmesh))
 
-    plot()
+    #plot()
     #calc several params
     for i in 1:MaxIter
         #for debug
-        ρptest[i,:]=Calc_ρ(Oldocc[1],OldStates[1],rmesh)
+        #ρptest[i,:]=Calc_ρ(Oldocc[1],OldStates[1],rmesh)
 
         h2m,dh2m,V,W=Calc_Coef(Oldρ3,Oldτ3,OldJ3,aN,aΛ,pN,pΛ,AN.Z)
 
@@ -515,12 +513,187 @@ function HF_iter(AN::AtomNum;MaxIter=10,NParamType="SLy4",ΛParamType="HPΛ1")
         OldJ3=OldJ3*(1-α)+NewJ3*α
     end
 
+    #=
     plot(xlabel="r",ylabel="ρn")
     for i in 1:MaxIter
         plot!(rmesh,ρptest[i,:],label="$i")
     end
     plot!()
+    =#
 
 end
 
+############################################3
+# out put files
 
+function OutPutFiles(AN::AtomNum;NParamType="SLy4",ΛParamType="HPL1")
+    Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,ΛParamType=ΛParamType,MaxIter=50)
+
+    Z=AN.Z
+    N=AN.N
+    Λ=AN.Λ
+    rm("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(ΛParamType)",force=true,recursive=true)
+    mkpath("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(ΛParamType)")
+    cd("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(ΛParamType)")
+    WriteStates(AN,Ansocc,AnsStates,NParamType,ΛParamType)
+    WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,ΛParamType)
+    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,ΛParamType)
+    cd("../..")
+end
+
+function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,ΛParamType)
+    io=open("states.csv","w")
+
+    rmesh=getrmesh()
+    Z=AN.Z
+    N=AN.N
+    Λ=AN.Λ
+    write(io, "# Nuclear Parameter=$(NParamType)\n")
+    write(io, "# Lambda Parameter=$(ΛParamType)\n")
+    write(io, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
+    write(io, "# Number of mesh=$(Nmesh)\n")
+    write(io, "# rmax=$(rmax)\n")
+    write(io, "# Matching point of shooting = $(rmesh[Nmesh])\n\n")
+    write(io, "Baryon Type, occ, j, l, Energy(MeV)\n")
+
+    for b=1:3
+        for i=eachindex(AnsStates[b])
+            j=AnsStates[b][i].QN.j
+            l=AnsStates[b][i].QN.l
+            E=AnsStates[b][i].E
+            if b==1 #proton
+                write(io, "proton, $(Ansocc[b][i]), $(j), $(l), $(E)\n")
+            elseif b==2 #neutron
+                write(io, "neutron, $(Ansocc[b][i]), $(j), $(l), $(E)\n")
+            elseif b==3 #Λ
+                write(io, "lambda, $(Ansocc[b][i]), $(j), $(l), $(E)\n")
+            end
+        end
+    end
+    close(io)
+end
+
+function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,ΛParamType)
+    io=open("wavefunc.csv","w")
+
+    rmesh=getrmesh()
+    Z=AN.Z
+    N=AN.N
+    Λ=AN.Λ
+    write(io, "# Nuclear Parameter=$(NParamType)\n")
+    write(io, "# Lambda Parameter=$(ΛParamType)\n")
+    write(io, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
+    write(io, "# Number of mesh=$(Nmesh)\n")
+    write(io, "# rmax=$(rmax)\n")
+    write(io, "# Matching point of shooting = $(rmesh[Nmesh])\n\n")
+    write(io, "r(fm)")
+    for b in 1:3
+        for i=eachindex(AnsStates[b])
+            if b==1
+                write(io, ", Rp$(i)")
+            elseif b==2
+                write(io, ", Rn$(i)")
+            elseif b==3
+                write(io, ", Rl$(i)")
+            end
+        end
+    end
+
+    write(io, "\n")
+    for n in 1:Nmesh
+        write(io, "$(rmesh[n])")
+        for b in 1:3
+            for i=eachindex(AnsStates[b])
+                write(io, ", $(AnsStates[b][i].ψ[n])")
+            end
+        end 
+        write(io, "\n")
+    end
+
+    close(io)
+
+end
+
+function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,ΛParamType)
+    io1=open("density.csv","w")
+    rmesh=getrmesh()
+    Z=AN.Z
+    N=AN.N
+    Λ=AN.Λ
+    write(io1, "# Nuclear Parameter=$(NParamType)\n")
+    write(io1, "# Lambda Parameter=$(ΛParamType)\n")
+    write(io1, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
+    write(io1, "# Number of mesh=$(Nmesh)\n")
+    write(io1, "# rmax=$(rmax)\n")
+    write(io1, "# Matching point of shooting = $(rmesh[Nmesh])\n\n")
+
+    ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
+    ρN=ρ3[1,:]+ρ3[2,:]
+    dρN=dρ3[1,:]+dρ3[2,:]
+    LapρN=Lapρ3[1,:]+Lapρ3[2,:]
+    τN=τ3[1,:]+τ3[2,:]
+    JN=J3[1,:]+J3[2,:]
+    divJN=divJ3[1,:]+divJ3[2,:]
+    h=rmesh[2]-rmesh[1]
+
+    aN=NuclParameters.getaN(NParamType)
+    aΛ=LambdaParameters.getaΛ(ΛParamType)
+    pN=NuclParameters.getParams(NParamType)
+    pΛ=LambdaParameters.getParams(ΛParamType)
+    VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN)
+    VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:])
+    VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
+    VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
+    Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
+
+    write(io1, "r(fm), ")
+    write(io1, ", Rhop, dRhop, LapRhop, Jp, DivJp")
+    write(io1, ", Rhon, dRhon, LapRhon, Jn, DivJn")
+    write(io1, ", Rhol, dRhol, LapRhol, Jl, DivJl")
+    write(io1, ", RhoN, dRhoN, LapRhoN, JN, DivJN\n")
+
+    for n in 1:Nmesh
+        write(io1, "$(rmesh[n])")
+        for b in 1:3
+            if b<=3
+                write(io1, ", $(ρ3[b,n])")
+                write(io1, ", $(dρ3[b,n])")
+                write(io1, ", $(Lapρ3[b,n])")
+                write(io1, ", $(J3[b,n])")
+                write(io1, ", $(divJ3[b,n])")
+            elseif b==4
+                write(io1, ", $(ρN[n])")
+                write(io1, ", $(dρN[n])")
+                write(io1, ", $(LapρN[n])")
+                write(io1, ", $(JN[n])")
+                write(io1, ", $(divJN[n])")
+            end
+        end
+        write(io1, "\n")
+    end
+
+    close(io1)
+
+    io2=open("potential.csv","w")
+    write(io2, "# Nuclear Parameter=$(NParamType)\n")
+    write(io2, "# Lambda Parameter=$(ΛParamType)\n")
+    write(io2, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
+    write(io2, "# Number of mesh=$(Nmesh)\n")
+    write(io2, "# rmax=$(rmax)\n")
+    write(io2, "# Matching point of shooting = $(rmesh[Nmesh])\n\n")
+    
+    write(io2, "r(fm), ")
+    write(io2, ", Vll(MeV), VlN(MeV), VNp(MeV), VNn(MeV), Vcoul(MeV)\n")
+    for n in 1:Nmesh
+        write(io2, "$(rmesh[n])")
+        write(io2, ", $(VΛΛ[n])")
+        write(io2, ", $(VΛN[n])")
+        write(io2, ", $(VNp[n])")
+        write(io2, ", $(VNn[n])")
+        write(io2, ", $(Vcoul[n])")
+        write(io2, "\n")
+    end
+
+    close(io2)
+
+end

@@ -83,6 +83,19 @@ module NuclParameters
             W0=130.0
         end
 
+        if ParamType=="VB1"
+            t0=-1057.3
+            t1=235.9
+            t2=-100.0
+            t3=14463.5
+            x0=0.56
+            x1=0.00
+            x2=0.00
+            x3=0.00
+            σ=1
+            W0=120.0
+        end
+
         return NuclParams(t0,t1,t2,t3,x0,x1,x2,x3,σ,W0)
     end
 
@@ -99,6 +112,11 @@ module NuclParameters
         aN[8]=-1/32*(3*p.t1*(2*p.x1+1)+p.t2*(2*p.x2+1))
         aN[9]=-1/16*(p.t1*p.x1+p.t2*p.x2)
         aN[10]=1/16*(p.t1-p.t2)
+
+        if ParamType=="VB1"
+            aN[3]=p.t3/8
+            aN[4]=-aN[3]
+        end
 
         return aN
     end
@@ -117,7 +135,7 @@ module LambdaParameters
     end
 
     function getParams(ParamType::String)
-        if ParamType=="HPΛ1"
+        if ParamType=="HPL1"
             γ = 1
             u0 = -326.395
             u1 = 72.627
@@ -125,7 +143,7 @@ module LambdaParameters
             u3p = 1746.041
             y0 = -0.223
             y3 = -0.389 
-        elseif ParamType=="HPΛ2"
+        elseif ParamType=="HPL2"
             γ = 1
             u0 = -399.946
             u1 = 83.426
@@ -133,7 +151,7 @@ module LambdaParameters
             u3p = 2046.818
             y0 = -0.486
             y3 = -0.660
-        elseif ParamType=="HPΛ3"
+        elseif ParamType=="HPL3"
             γ =  1/3
             u0 = -498.515
             u1 = 65.203
@@ -141,7 +159,7 @@ module LambdaParameters
             u3p = 995.832
             y0 = -0.492
             y3 = -0.444
-        elseif ParamType=="HPΛ4"
+        elseif ParamType=="HPL4"
             γ = 1/3
             u0 = -475.584
             u1 = 99.058
