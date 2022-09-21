@@ -15,8 +15,8 @@ using .MyLib
     ħc=197.3269804
     e2MeVfm=1.4400 
 
-    Nmesh=4000
-    Nmatch=1200
+    Nmesh=300
+    Nmatch=75
     rmax=30
     lmax=6
 
@@ -43,7 +43,7 @@ end
 function getrmesh()
     #Be careful for the SolvePoissionEq
     h=rmax/Nmesh
-    rmesh=h:h:h*Nmesh
+    rmesh=0:h:h*(Nmesh-1)
     return rmesh
 end
 
@@ -74,6 +74,7 @@ function InitPot(AN::AtomNum,rmesh)
     R=r0*A^(1/3)
     h2m=zeros(Float64,(3,Nmesh))
     dh2m=zeros(Float64,(3,Nmesh))
+    ddh2m=zeros(Float64,(3,Nmesh))
     V=zeros(Float64,(3,Nmesh))
     W=zeros(Float64,(3,Nmesh))
 
@@ -93,112 +94,139 @@ function InitPot(AN::AtomNum,rmesh)
         end
     end
 
-    return h2m,dh2m,V,W
+    return h2m,dh2m,ddh2m,V,W
 end
 
 #######################################
 # Differential Equation AR''+BR+CR=ER #
 # R=u, R'=v                           #
 #######################################
-function CalcABC(QN,h2mB,dh2mB,VB,WB,rmesh)
+function CalcABC(QN,h2mB,dh2mB,ddh2m,VB,WB,rmesh)
     j=QN.j
     l=QN.l
     A=zeros(Float64,Nmesh)
-    B=zeros(Float64,Nmesh)
     C=zeros(Float64,Nmesh)
     @. A[:] += -h2mB[:]
-    @. B[:] += -dh2mB[:]
-    @. C[:] += h2mB[:]*l*(l+1)/(rmesh[:]^2) + VB[:] + dh2mB[:]/rmesh[:] + WB[:]/rmesh[:]*(j*(j+1)-l*(l+1)-0.75)
 
-    return A,B,C
+    C[1]=NaN #singular behavior
+    @. C[2:Nmesh] += -0.25*dh2mB[2:Nmesh]^2/h2mB[2:Nmesh]
+    @. C[2:Nmesh] += 0.5*ddh2m[2:Nmesh]
+    @. C[2:Nmesh] += h2mB[2:Nmesh]*l*(l+1)/(rmesh[2:Nmesh]^2) + VB[2:Nmesh]
+    @. C[2:Nmesh] += dh2mB[2:Nmesh]/rmesh[2:Nmesh] + WB[2:Nmesh]/rmesh[2:Nmesh]*(j*(j+1)-l*(l+1)-0.75)
+
+    return A,C
 end
 
-# Euler Method
-# backward difference
-# u'=v
-# v' + B/A*v = (E-C)/A*u
-function DiffEqBD(u,v,E,A,B,C,h)
-    det=1+h*B/A-h^2*(E-C)/A
-    unew=((1+h*B/A)*u + h*v)/det
-    vnew=(h*(E-C)/A*u + v)/det
-    return unew, vnew
+#Diff. eq. ψ''(r)+f(r)ψ(r)=0
+#Calc ψ[1]=ψ(r-h) by ψ[2]=ψ(r) and ψ[3]=ψ(r+h) using Numerov Method
+function Numerov6(ψ::Vector{Float64},f::Vector{Float64},h)
+	val=0.0
+	val+=(2-5*h^2*f[2]/6)*ψ[2]
+	val-=(1+h^2*f[1]/12)*ψ[1]
+	val/=(1+h^2*f[3]/12)
+	return val
 end
 
-
-function BoundCond(QN,E,A1,B1,C1,rmesh)
+function BoundCond(QN,E,A,C,rmesh)
+    @assert E<=0
     l=QN.l
     mass=getmass(QN)
     h=rmesh[2]-rmesh[1]
-    u0=0
-    v0=1
-    uin1,vin1=DiffEqBD(u0,v0,E,A1,B1,C1,h)
-    uout2=exp(-(-2*mass/ħc^2*E)^0.5*rmesh[Nmesh])
-    vout2=-(-2*mass/ħc^2*E)^0.5*exp(-(-2*mass/ħc^2*E)^0.5*rmesh[Nmesh])
-    return uin1,vin1,uout2,vout2
+    Rin=zeros(Float64,3)
+    Rin[1]=0 # r=rmesh[1]=0
+    Rin[2]=h # r=rmesh[2]=h
+    if l!=1
+        Rin[3]+=(2 - 5*h^2*(C[2]-E)/A[2]/6)*Rin[2]
+        #Rin[3]-=0
+        Rin[3]/=(1+h^2*(C[3]-E)/A[3]/12)
+    else
+        Rin[3]+=(2 - 5*h^2*(C[2]-E)/A[2]/6)*Rin[2]
+        Rin[3]-=h^2 /12 * (ħc^2/(2*mass)*l*(l+1)*Rin[2]/rmesh[2]^2-E)/A[1]
+        Rin[3]/=(1+h^2*(C[3]-E)/A[3]/12)
+    end
+
+    Rout=zeros(Float64,3)
+    Rout[3]=exp(-(-2*mass/ħc^2*E)^(0.5) * rmesh[Nmesh])
+    Rout[2]=exp(-(-2*mass/ħc^2*E)^(0.5) * rmesh[Nmesh-1])
+    Rout[1]=exp(-(-2*mass/ħc^2*E)^(0.5) * rmesh[Nmesh-2])
+
+    return Rin,Rout
 end
 
-function WronskyEuler(E,QN::QuantumNumber,A,B,C,rmesh)
+# y[1]=y[i-2], y[2]=y[i-1], y[3]=y[i], y[4]=y[i+1], y[5]=y[i+2]
+function diff1st5pt(h,y::Vector{Float64})
+    return (-y[5]/12 + y[4]*2/3 - y[2]*2/3 + y[1]/12)/h
+end
+
+function WronskyEuler(E,QN::QuantumNumber,A,C,rmesh)
     h=rmesh[2]-rmesh[1]
 
-    uin=zeros(Float64,2)
-    vin=zeros(Float64,2)
-    uout=zeros(Float64,2)
-    vout=zeros(Float64,2)
-    uin[1],vin[1],uout[2],vout[2]=BoundCond(QN,E,A[1],B[1],C[1],rmesh)
+    Rin=zeros(Float64,5)
+    Rout=zeros(Float64,5)
+    Rin[3:5],Rout[1:3]=BoundCond(QN,E,A,C,rmesh)
 
-    for i in 2:Nmatch
-        uin[2],vin[2]=DiffEqBD(uin[1],vin[1],E,A[i],B[i],C[i],h)
-        uin[1]=uin[2]
-        vin[1]=vin[2]
+    for i in 3:Nmatch+1
+        Rin[1:4]=Rin[2:5]
+        ψvec=[Rin[3],Rin[4]]
+        fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]]
+        Rin[5]=Numerov6(ψvec,fvec,h)
     end
 
-    for i in Nmesh-1:-1:Nmatch
-        uout[1],vout[1]=DiffEqBD(uout[2],vout[2],E,A[i],B[i],C[i],-h)
-        uout[2]=uout[1]
-        vout[2]=vout[1]
+    for i in Nmesh-2:-1:Nmatch-1
+        Rout[2:5]=Rout[1:4]
+        ψvec=[Rout[3],Rout[2]]
+        fvec=[(C[i+1]-E)/A[i+1], (C[i]-E)/A[i], (C[i-1]-E)/A[i-1]]
+        Rout[1]=Numerov6(ψvec,fvec,-h)
     end
 
-    return uin[1]*vout[1]-uout[1]*vin[1]
+    dRin=diff1st5pt(h,Rin)
+    dRout=diff1st5pt(h,Rout)
+
+    return Rin[3]*dRout-Rout[3]*dRin
 end
 
 ##########################################################
 #Calculate States by given A, B, C
 function NormFact(rmesh,ψ)
     ans=MyLib.IntTrap(rmesh,@. ψ[:]^2)
-    ans+=ψ[1]^2*rmesh[1]/2 #r=0~rmesh[1]までの量を足す
     ans=sqrt(ans)
     return ans
 end
 
-function RadWaveFunc(E,QN::QuantumNumber,A,B,C,rmesh)
+function RadWaveFunc(E,QN::QuantumNumber,A,C,rmesh)
     h=rmesh[2]-rmesh[1]
 
-    u=zeros(Float64,Nmesh)
-    v=zeros(Float64,Nmesh)
-    u[1],v[1],u[Nmesh],v[Nmesh]=BoundCond(QN,E,A[1],B[1],C[1],rmesh)
+    R=zeros(Float64,Nmesh)
+    R[1:3],R[Nmesh-2:Nmesh]=BoundCond(QN,E,A,C,rmesh)
 
-    for i in 2:Nmatch
-        u[i],v[i]=DiffEqBD(u[i-1],v[i-1],E,A[i],B[i],C[i],h)
+    for i in 3:Nmatch-1
+        ψvec=[R[i-1],R[i]]
+        fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]]
+        R[i+1]=Numerov6(ψvec,fvec,h)
     end
-    u[1:Nmatch]/=u[Nmatch]
+    R[1:Nmatch]/=R[Nmatch]
 
-    for i in Nmesh-1:-1:Nmatch
-        u[i],v[i]=DiffEqBD(u[i+1],v[i+1],E,A[i],B[i],C[i],-h)
+    for i in Nmesh-2:-1:Nmatch+1
+        ψvec=[R[i+1],R[i]]
+        fvec=[(C[i+1]-E)/A[i+1], (C[i]-E)/A[i], (C[i-1]-E)/A[i-1]]
+        R[i-1]=Numerov6(ψvec,fvec,-h)
     end
-    u[Nmatch:Nmesh]/=u[Nmatch]
+    R[Nmatch:Nmesh]/=R[Nmatch]
 
-    Norm=NormFact(rmesh,u)
-    u*=sign(u[2]-u[1])/Norm
+    @. R[:]*=(-A[:])^(-0.5)
 
-    return u
+    Norm=NormFact(rmesh,R)
+    R*=sign(R[2]-R[1])/Norm
+
+    return R
 end
 
-function CalcStates(QN::QuantumNumber,h2mB,dh2mB,VB,WB,rmesh)
+function CalcStates(QN::QuantumNumber,h2mB,dh2mB,ddh2mB,VB,WB,rmesh)
     States=SingleParticleState[]
 
-    A,B,C=CalcABC(QN,h2mB,dh2mB,VB,WB,rmesh)
+    A,C=CalcABC(QN,h2mB,dh2mB,ddh2mB,VB,WB,rmesh)
     Erange=-100.0:0.0 #In BCS approx., E>0 state also needs to be calculated.
-    args=[QN,A,B,C,rmesh]
+    args=[QN,A,C,rmesh]
     
     for i in 1:(length(Erange)-1)
         Eans=MyLib.MyBisect(Erange[i],Erange[i+1],WronskyEuler,args,rtol=1e-6) #WronskyEuler(E,QN::QuantumNumber,A,B,C,rmesh)
@@ -213,14 +241,14 @@ function CalcStates(QN::QuantumNumber,h2mB,dh2mB,VB,WB,rmesh)
     return States
 end
 
-function CalcAllStates(h2m,dh2m,V,W,rmesh)
+function CalcAllStates(h2m,dh2m,ddh2m,V,W,rmesh)
     AllStates=[SingleParticleState[],SingleParticleState[],SingleParticleState[]]
     for b in 1:3
         States=SingleParticleState[]
         for l in 0:lmax
             for j in max(l-0.5,0.5):l+0.5
                 QN=QuantumNumber(j,l,b)
-                States=vcat(States,CalcStates(QN,h2m[b,:],dh2m[b,:],V[b,:],W[b,:],rmesh))
+                States=vcat(States,CalcStates(QN,h2m[b,:],dh2m[b,:],ddh2m[b,:],V[b,:],W[b,:],rmesh))
             end
         end
         sort!(States, by=x->x.E)
@@ -253,9 +281,9 @@ end
 
 function InitialCondition(AN::AtomNum)
     rmesh=getrmesh()
-    h2m,dh2m,V,W=InitPot(AN,rmesh)
+    h2m,dh2m,ddh2m,V,W=InitPot(AN,rmesh)
 
-    InitState=CalcAllStates(h2m,dh2m,V,W,rmesh)
+    InitState=CalcAllStates(h2m,dh2m,ddh2m,V,W,rmesh)
     #Initocc=Calc_occ(AN,InitState)
 
     return InitState
@@ -267,7 +295,11 @@ function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
     ρ=zeros(Float64,Nmesh)
     for i=eachindex(occ)
         j=States[i].QN.j
-        @. ρ[:]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[:]/rmesh[:])^2
+        l=States[i].QN.l
+        if l==0
+            ρ[1]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[2]/rmesh[2])^2
+        end
+        @. ρ[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[2:Nmesh]/rmesh[2:Nmesh])^2
     end
     return ρ
 end
@@ -275,34 +307,87 @@ end
 
 function Calc_dρ(ρ,rmesh)
     h=rmesh[2]-rmesh[1]
-    dρ=MyLib.diff1st(h,ρ)
+    dρ=zeros(Float64,Nmesh)
+    dρ[1]=0 #odd function 
+    dρ[2]=(-ρ[4]/12 + ρ[3]*2/3 - ρ[1]*2/3 + ρ[2]/12)/h
+    for i in 3:Nmesh-2
+        dρ[i]=diff1st5pt(h,ρ[i-2:i+2])
+    end
+    dρ[Nmesh-1]=(ρ[Nmesh]-ρ[Nmesh-2])/(2*h)
+    dρ[Nmesh]=(-ρ[Nmesh-2]+4*ρ[Nmesh-1]-3*ρ[Nmesh])/(2*(-h))
     
     return dρ
+end
+
+function diff2nd5pt(h,y::Vector{Float64})
+    return (-y[5]/12 + y[4]*4/3 - y[3]*5/2 + y[2]*4/3 - y[1]/12)/h^2
+end
+
+function Calc_ddρ(ρ,rmesh)
+    h=rmesh[2]-rmesh[1]
+    ddρ=zeros(Float64,Nmesh)
+    ddρ[1]=(-ρ[3]/12 + ρ[2]*4/3 - ρ[1]*5/2 + ρ[2]*4/3 - ρ[3]/12)/h^2
+    ddρ[2]=(-ρ[4]/12 + ρ[3]*4/3 - ρ[2]*5/2 + ρ[1]*4/3 - ρ[2]/12)/h^2
+    for i in 3:Nmesh-2
+        ddρ[i]=diff2nd5pt(h,ρ[i-2:i+2])
+    end
+    ddρ[Nmesh-1]=(ρ[Nmesh]-2*ρ[Nmesh-1]+ρ[Nmesh-2])/(h^2)
+    ddρ[Nmesh]=(2*ρ[Nmesh]-5*ρ[Nmesh-1]+4*ρ[Nmesh-2]-ρ[Nmesh-3])/(h^2)
+
+    return ddρ
 end
 
 function Calc_Lapρ(ρ::Vector{Float64},rmesh)
     Lapρ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
     dρ=Calc_dρ(ρ,rmesh)
-    ddρ=MyLib.diff2nd(h,ρ)
-    @. Lapρ[:]+=2*dρ[:]/rmesh[:] + ddρ[:]
+    ddρ=Calc_ddρ(ρ,rmesh)
+    dρr=zeros(Float64,Nmesh)
+    dρr[1]=dρ[2]/rmesh[2]
+    @. dρr[2:Nmesh]=dρ[2:Nmesh]/rmesh[2:Nmesh]
+    @. Lapρ[:]+=2*dρr[:] #+ ddρ[:]
     return Lapρ
 end
 
+#Calc_Rr, Calc_dRrを導入しても良いかも
 function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
     τ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
+    dRr=zeros(Float64,Nmesh)
+    Rr=zeros(Float64,Nmesh)
     for i=eachindex(occ)
-
-        dRr=MyLib.diff1st(h,(@. States[i].ψ[:]/rmesh[:]))
-
         j=States[i].QN.j
         l=States[i].QN.l
+        P_Rr=(-1)^l
+
+        R=States[i].ψ
+        if l==0
+            Rr[1]=R[2]/rmesh[2]
+        else
+            Rr[1]=0
+        end
+        @. Rr[2:Nmesh]=R[2:Nmesh]/rmesh[2:Nmesh]
+
+        if l==1
+            dRr[1]=Rr[2]/rmesh[2]
+        else
+            dRr[1]=0
+        end
+        dRr[2]=(-Rr[4]/12 + Rr[3]*2/3 - Rr[1]*2/3 + P_Rr*Rr[2]/12)/h
+        for i in 3:Nmesh-2
+            dRr[i]=(-Rr[i+2]/12 + Rr[i+1]*2/3 - Rr[i-1]*2/3 + Rr[i-2]/12)/h
+        end
+        dRr[Nmesh-1]=(Rr[Nmesh]-Rr[Nmesh-2])/(2*h)
+        dRr[Nmesh]=(-Rr[Nmesh-2]+4*Rr[Nmesh-1]-3*Rr[Nmesh])/(2*(-h))
+
         @. τ[:]+=occ[i]*(2*j+1)/(4*π)*dRr[:]^2
 
-        if l>0
-            @. τ[:]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*(States[i].ψ[:]/rmesh[:])^2/rmesh[:]^2
+        if l==1
+            τ[1]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr[2]^2/rmesh[2]^2
         end
+        if l>0
+            @. τ[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr[2:Nmesh]^2/rmesh[2:Nmesh]^2
+        end        
     end
     return τ
 end
@@ -313,17 +398,35 @@ function Calc_J(occ,States::Vector{SingleParticleState},rmesh)
         j=States[i].QN.j
         l=States[i].QN.l
         if l>0
-            @. J[:]+=occ[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[:]/rmesh[:])^2/rmesh[:]
+            @. J[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[2:Nmesh]/rmesh[2:Nmesh])^2/rmesh[2:Nmesh]
         end
     end
     return J
 end
 
+function Calc_dJ(J,rmesh)
+    dJ=zeros(Float64,Nmesh)
+    h=rmesh[2]-rmesh[1]
+    # J: Parity odd
+    dJ[1]=(-J[3]/12 + J[2]*2/3 + J[2]*2/3 - J[3]/12)/h
+    dJ[2]=(-J[4]/12 + J[3]*2/3 - J[1]*2/3 - J[2]/12)/h
+    for i in 3:Nmesh-2
+        dJ[i]=(-J[i+2]/12 + J[i+1]*2/3 - J[i-1]*2/3 - J[i-2]/12)/h
+    end
+    dJ[Nmesh-1]=(J[Nmesh]-J[Nmesh-2])/(2*h)
+    dJ[Nmesh]=(-J[Nmesh-2]+4*J[Nmesh-1]-3*J[Nmesh])/(2*(-h))
+
+    return dJ
+end
+
 function Calc_divJ(J::Vector{Float64},rmesh)
     divJ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
-    dJ=MyLib.diff1st(h,J)
-    @. divJ+=dJ[:]+2*J[:]/rmesh[:]
+    dJ=Calc_dJ(J,rmesh)
+    Jr=zeros(Float64,Nmesh)
+    Jr[1]=J[2]/rmesh[2]
+    @. Jr[2:Nmesh]=J[2:Nmesh]/rmesh[2:Nmesh]
+    @. divJ+=dJ[:]+2*Jr[:]
     return divJ
 end
 
@@ -494,9 +597,9 @@ function HF_iter(AN::AtomNum;MaxIter=50,NParamType="SLy4",ΛParamType="HPL1")
         #for debug
         #ρptest[i,:]=Calc_ρ(Oldocc[1],OldStates[1],rmesh)
 
-        h2m,dh2m,V,W=Calc_Coef(Oldρ3,Oldτ3,OldJ3,aN,aΛ,pN,pΛ,AN.Z)
+        h2m,dh2m,ddh2m,V,W=Calc_Coef(Oldρ3,Oldτ3,OldJ3,aN,aΛ,pN,pΛ,AN.Z)
 
-        NewStates=CalcAllStates(h2m,dh2m,V,W,rmesh)
+        NewStates=CalcAllStates(h2m,dh2m,ddh2m,V,W,rmesh)
         Newocc=Calc_occ(AN,NewStates)
         Newρ3,Newdρ3,NewLapρ3,Newτ3,NewJ3,NewdivJ3=Calc_Density(Newocc,NewStates)
         

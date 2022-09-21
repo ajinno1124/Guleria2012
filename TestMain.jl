@@ -6,7 +6,7 @@ function TestInitPot()
     AN=AtomNum(82,126,0) #lead
 
     rmesh=getrmesh()
-    h2m,dh2m,V,W=InitPot(AN,rmesh)
+    h2m,dh2m,ddh2m,V,W=InitPot(AN,rmesh)
     labels=["proton" "neutron" "Λ"]
     colors=[:red :blue :green]
     l=@layout [a b c]
@@ -20,46 +20,43 @@ end
 function CheckInitABC()
     rmesh=getrmesh()
     AN=AtomNum(82,126,0) #lead
-    h2m,dh2m,V,W=InitPot(AN,rmesh)
+    h2m,dh2m,ddh2m,V,W=InitPot(AN,rmesh)
 
     A=zeros(Float64,(3,Nmesh))
-    B=zeros(Float64,(3,Nmesh))
     C=zeros(Float64,(3,Nmesh))
 
     for b in 1:3
         QN=QuantumNumber(1.5,1,b)
-        A[b,:],B[b,:],C[b,:]=CalcABC(QN,h2m[b,:],dh2m[b,:],V[b,:],W[b,:],rmesh)
+        A[b,:],C[b,:]=CalcABC(QN,h2m[b,:],dh2m[b,:],ddh2m[b,:],V[b,:],W[b,:],rmesh)
     end
     
     labels=["proton" "neutron" "Λ"]
     colors=[:red :blue :green]
-    l=@layout [a b c]
+    l=@layout [a c]
     p1=plot(rmesh,[A[1,:],A[2,:],A[3,:]],xlabel="r",ylabel="A")
-    p2=plot(rmesh,[B[1,:],B[2,:],B[3,:]],xlabel="r",ylabel="B")
-    p3=plot(rmesh,[C[1,:],C[2,:],C[3,:]],xlabel="r",ylabel="C",ylim=(-60,10))
+    p2=plot(rmesh,[C[1,:],C[2,:],C[3,:]],xlabel="r",ylabel="C",ylim=(-60,10))
 
-    plot(p1,p2,p3,layout=l,title="Z=$(AN.Z), N=$(AN.N)",label=labels,color=colors)
+    plot(p1,p2,layout=l,title="Z=$(AN.Z), N=$(AN.N)",label=labels,color=colors)
 end
 
 function TestWronskyEuler()
     rmesh=getrmesh()
     AN=AtomNum(82,126,0) #lead
-    h2m,dh2m,V,W=InitPot(AN,rmesh)
+    h2m,dh2m,ddh2m,V,W=InitPot(AN,rmesh)
 
     A=zeros(Float64,(3,Nmesh))
-    B=zeros(Float64,(3,Nmesh))
     C=zeros(Float64,(3,Nmesh))
     b=1 #proton
-    QN=QuantumNumber(1.5,1,b)
-    A[b,:],B[b,:],C[b,:]=CalcABC(QN,h2m[b,:],dh2m[b,:],V[b,:],W[b,:],rmesh)
+    QN=QuantumNumber(0.5,0,b)
+    A[b,:],C[b,:]=CalcABC(QN,h2m[b,:],dh2m[b,:],ddh2m[b,:],V[b,:],W[b,:],rmesh)
 
     Erange=-65.0:0.1:-15
     Wronskian=zeros(Float64,length(Erange))
     for i=eachindex(Erange)
-        Wronskian[i]=WronskyEuler(Erange[i],QN,A[b,:],B[b,:],C[b,:],rmesh)
+        Wronskian[i]=WronskyEuler(Erange[i],QN,A[b,:],C[b,:],rmesh)
     end
 
-    plot(xlabel="E (MeV)", ylabel="Wronskian",title="Z=$(AN.Z), N=$(AN.N), j=$(QN.j), l=$(QN.j), b=$(QN.B)")
+    plot(xlabel="E (MeV)", ylabel="Wronskian",title="Z=$(AN.Z), N=$(AN.N), j=$(QN.j), l=$(QN.l), b=$(QN.B)")
     plot!(Erange,Wronskian,label=false)
 
 end
@@ -68,7 +65,7 @@ function TestInitialCondition()
     AN=AtomNum(82,126,0)
     InitState=InitialCondition(AN)
     Initocc=Calc_occ(AN,InitState)
-    b=2
+    b=1
     for i=eachindex(InitState[b])
         occ=Initocc[b][i]
         l=InitState[b][i].QN.l
@@ -78,16 +75,16 @@ function TestInitialCondition()
     end
     
     #proton波動関数をプロット
-    plot(xlabel="r", ylabel="R/r", title="Initial Proton Wave Function")
+    plot(xlabel="r", ylabel="R", title="Initial Proton Wave Function")
     rmesh=getrmesh()
     for i=eachindex(InitState[b])
 
             l=InitState[b][i].QN.l
             j=InitState[b][i].QN.j
-        if l==0
+        #if l==0
             #plot!(rmesh,InitState[b][i].ψ,label="(l,j)=($l,$j)",legend=false)
-            plot!(rmesh,(@. InitState[b][i].ψ[:]/rmesh[:]),label="(l,j)=($l,$j)",legend=false)
-        end
+            plot!(rmesh,(@. InitState[b][i].ψ[:]),label="(l,j)=($l,$j)",legend=false)
+        #end
         #if l==1
         #    plot!(rmesh,(@. InitState[b][i].ψ[:]^2/rmesh[:]^2),label="(l,j)=($l,$j)",legend=false)
         #end
@@ -106,7 +103,7 @@ function TestDensity()
 
     b=1
 
-    #println(Lapρ3[b,:])
+    println(Lapρ3[b,:])
     #println(τ3[b,:])
     #println(dρ3[b,:])
     #println(ρ3[b,:])
@@ -124,7 +121,7 @@ function TestDensity()
     
 end
 
-function TestHFiter(;NParamType="SLy4",ΛParamType="HPΛ2")
+function TestHFiter(;NParamType="SLy4",ΛParamType="HPL2")
     AN=AtomNum(82,126,1)
     Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,ΛParamType=ΛParamType,MaxIter=50)
     b=3
