@@ -297,7 +297,9 @@ function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
         j=States[i].QN.j
         l=States[i].QN.l
         if l==0
-            ρ[1]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[2]/rmesh[2])^2
+            R1r1=(rmesh[3]^2*States[i].ψ[2]/rmesh[2]-rmesh[2]^2*States[i].ψ[3]/rmesh[3])
+            R1r1/=rmesh[3]^2-rmesh[2]^2
+            ρ[1]+=occ[i]*(2*j+1)/(4*π)*(R1r1)^2
         end
         @. ρ[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[2:Nmesh]/rmesh[2:Nmesh])^2
     end
@@ -527,6 +529,7 @@ function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
 
     h2m=zeros(Float64,(3,Nmesh))
     dh2m=zeros(Float64,(3,Nmesh))
+    ddh2m=zeros(Float64,(3,Nmesh))
     V=zeros(Float64,(3,Nmesh))
     W=zeros(Float64,(3,Nmesh))
 
@@ -540,22 +543,25 @@ function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
         if b==1 #proton
             h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
             dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
+            ddh2m[b,:]+=MyLib.diff2nd(h,h2m[b,:])
             V[b,:]+=VΛN+VNp+Vcoul
             W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==2 #neutron
             h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
             dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
+            ddh2m[b,:]+=MyLib.diff2nd(h,h2m[b,:])
             V[b,:]+=VΛN+VNn
             W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==3 #Lambda
             h2m[b,:]+=Calc_h2mΛ(aΛ,ρN)
             dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
+            ddh2m[b,:]+=MyLib.diff2nd(h,h2m[b,:])
             V[b,:]+=VΛΛ
             @. W[b,:]+=0
         end
     end
 
-    return h2m,dh2m,V,W
+    return h2m,dh2m,ddh2m,V,W
 end
 
 function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
