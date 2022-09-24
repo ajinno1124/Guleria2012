@@ -210,7 +210,7 @@ module LambdaParameters
         aΛ[1]=p.u0*(1+0.5*p.y0)
         aΛ[2]=0.25*(p.u1+p.u2)
         aΛ[3]=1.0/8.0*(3*p.u1-p.u2)
-        aΛ[4]=3/8*p.u3p*(1+0.5*p.y3)
+        aΛ[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
 
         return aΛ
     end

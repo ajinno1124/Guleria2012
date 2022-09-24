@@ -450,7 +450,8 @@ function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
 end
 
 function Calc_VΛΛ(aΛ,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64})
-    return @. aΛ[1]*ρN+aΛ[2]*τN-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
+    # aΛ[2] がおかしそう。
+    return @. aΛ[1]*ρN+aΛ[2]*(ρN*dτΛ+τN)-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
 end
 
 function Calc_VΛN(aΛ,γ,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64})
