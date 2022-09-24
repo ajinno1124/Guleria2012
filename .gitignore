@@ -27,3 +27,5 @@ Manifest.toml
 ./Hoge.ipynb
 /my/
 /data/
+*.pdf
+*.png

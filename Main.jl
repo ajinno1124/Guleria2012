@@ -584,7 +584,7 @@ function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
 
 end
 
-function HF_iter(AN::AtomNum;MaxIter=50,NParamType="SLy4",ΛParamType="HPL1")
+function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",ΛParamType="HPL1")
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
     rmesh=getrmesh()
@@ -609,7 +609,7 @@ function HF_iter(AN::AtomNum;MaxIter=50,NParamType="SLy4",ΛParamType="HPL1")
         NewStates=CalcAllStates(h2m,dh2m,ddh2m,V,W,rmesh)
         Newocc=Calc_occ(AN,NewStates)
         Newρ3,Newdρ3,NewLapρ3,Newτ3,NewJ3,NewdivJ3=Calc_Density(Newocc,NewStates)
-        
+
         if CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh)==true
             return Newocc,NewStates
             break
@@ -700,11 +700,11 @@ function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,ΛParamType)
     for b in 1:3
         for i=eachindex(AnsStates[b])
             if b==1
-                write(io, ", Rp$(i)")
+                write(io, ",Rp$(i)")
             elseif b==2
-                write(io, ", Rn$(i)")
+                write(io, ",Rn$(i)")
             elseif b==3
-                write(io, ", Rl$(i)")
+                write(io, ",Rl$(i)")
             end
         end
     end
@@ -714,7 +714,7 @@ function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,ΛParamType)
         write(io, "$(rmesh[n])")
         for b in 1:3
             for i=eachindex(AnsStates[b])
-                write(io, ", $(AnsStates[b][i].ψ[n])")
+                write(io, ",$(AnsStates[b][i].ψ[n])")
             end
         end 
         write(io, "\n")
@@ -756,27 +756,27 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,ΛParamType)
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
 
-    write(io1, "r(fm), ")
-    write(io1, ", Rhop, dRhop, LapRhop, Jp, DivJp")
-    write(io1, ", Rhon, dRhon, LapRhon, Jn, DivJn")
-    write(io1, ", Rhol, dRhol, LapRhol, Jl, DivJl")
-    write(io1, ", RhoN, dRhoN, LapRhoN, JN, DivJN\n")
+    write(io1, "r(fm)")
+    write(io1, ",Rhop,dRhop,LapRhop,Jp,DivJp")
+    write(io1, ",Rhon,dRhon,LapRhon,Jn,DivJn")
+    write(io1, ",Rhol,dRhol,LapRhol,Jl,DivJl")
+    write(io1, ",RhoN,dRhoN,LapRhoN,JN,DivJN\n")
 
     for n in 1:Nmesh
         write(io1, "$(rmesh[n])")
-        for b in 1:3
+        for b in 1:4
             if b<=3
-                write(io1, ", $(ρ3[b,n])")
-                write(io1, ", $(dρ3[b,n])")
-                write(io1, ", $(Lapρ3[b,n])")
-                write(io1, ", $(J3[b,n])")
-                write(io1, ", $(divJ3[b,n])")
+                write(io1, ",$(ρ3[b,n])")
+                write(io1, ",$(dρ3[b,n])")
+                write(io1, ",$(Lapρ3[b,n])")
+                write(io1, ",$(J3[b,n])")
+                write(io1, ",$(divJ3[b,n])")
             elseif b==4
-                write(io1, ", $(ρN[n])")
-                write(io1, ", $(dρN[n])")
-                write(io1, ", $(LapρN[n])")
-                write(io1, ", $(JN[n])")
-                write(io1, ", $(divJN[n])")
+                write(io1, ",$(ρN[n])")
+                write(io1, ",$(dρN[n])")
+                write(io1, ",$(LapρN[n])")
+                write(io1, ",$(JN[n])")
+                write(io1, ",$(divJN[n])")
             end
         end
         write(io1, "\n")
@@ -791,16 +791,16 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,ΛParamType)
     write(io2, "# Number of mesh=$(Nmesh)\n")
     write(io2, "# rmax=$(rmax)\n")
     write(io2, "# Matching point of shooting = $(rmesh[Nmesh])\n\n")
-    
-    write(io2, "r(fm), ")
-    write(io2, ", Vll(MeV), VlN(MeV), VNp(MeV), VNn(MeV), Vcoul(MeV)\n")
+
+    write(io2, "r(fm)")
+    write(io2, ",Vll(MeV),VlN(MeV),VNp(MeV),VNn(MeV),Vcoul(MeV)\n")
     for n in 1:Nmesh
         write(io2, "$(rmesh[n])")
-        write(io2, ", $(VΛΛ[n])")
-        write(io2, ", $(VΛN[n])")
-        write(io2, ", $(VNp[n])")
-        write(io2, ", $(VNn[n])")
-        write(io2, ", $(Vcoul[n])")
+        write(io2, ",$(VΛΛ[n])")
+        write(io2, ",$(VΛN[n])")
+        write(io2, ",$(VNp[n])")
+        write(io2, ",$(VNn[n])")
+        write(io2, ",$(Vcoul[n])")
         write(io2, "\n")
     end
 
