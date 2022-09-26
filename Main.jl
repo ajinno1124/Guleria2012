@@ -345,9 +345,11 @@ function Calc_Lapρ(ρ::Vector{Float64},rmesh)
     dρ=Calc_dρ(ρ,rmesh)
     ddρ=Calc_ddρ(ρ,rmesh)
     dρr=zeros(Float64,Nmesh)
-    dρr[1]=dρ[2]/rmesh[2]
+    #dρr[1]=dρ[2]/rmesh[2]
+    dρr[1]=(rmesh[3]^2*dρ[2]/rmesh[2]-rmesh[2]^2*dρ[3]/rmesh[3])
+    dρr[1]/=rmesh[3]^2-rmesh[2]^2
     @. dρr[2:Nmesh]=dρ[2:Nmesh]/rmesh[2:Nmesh]
-    @. Lapρ[:]+=2*dρr[:] #+ ddρ[:]
+    @. Lapρ[:]+=2*dρr[:] + ddρ[:]
     return Lapρ
 end
 
@@ -364,17 +366,14 @@ function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
 
         R=States[i].ψ
         if l==0
-            Rr[1]=R[2]/rmesh[2]
+            Rr[1]=(rmesh[3]^2*R[2]/rmesh[2] - rmesh[2]^2*R[3]/rmesh[3])
+            Rr[1]/=rmesh[3]^2-rmesh[2]^2
         else
             Rr[1]=0
         end
         @. Rr[2:Nmesh]=R[2:Nmesh]/rmesh[2:Nmesh]
 
-        if l==1
-            dRr[1]=Rr[2]/rmesh[2]
-        else
-            dRr[1]=0
-        end
+        dRr[1]=(-Rr[3]/12 + Rr[2]*2/3 - P_Rr*Rr[2]*2/3 + P_Rr*Rr[3]/12)/h
         dRr[2]=(-Rr[4]/12 + Rr[3]*2/3 - Rr[1]*2/3 + P_Rr*Rr[2]/12)/h
         for i in 3:Nmesh-2
             dRr[i]=(-Rr[i+2]/12 + Rr[i+1]*2/3 - Rr[i-1]*2/3 + Rr[i-2]/12)/h
@@ -392,6 +391,23 @@ function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
         end        
     end
     return τ
+end
+
+# τ: Parity even
+function Calc_dτ(τ,rmesh)
+    h=rmesh[2]-rmesh[1]
+    dτ=zeros(Float64,Nmesh)
+    P_τ=1
+    #dτ[1]=(-τ[3]/12 + τ[2]*2/3 - P_τ*τ[2]*2/3 + P_τ*τ[3]/12)/h
+    dτ[1]=0
+    dτ[2]=(-τ[4]/12 + τ[3]*2/3 - τ[1]*2/3 + P_τ*τ[2]/12)/h
+    for i in 3:Nmesh-2
+        dτ[i]=(-τ[i+2]/12 + τ[i+1]*2/3 - τ[i-1]*2/3 + τ[i-2]/12)/h
+    end
+    dτ[Nmesh-1]=(τ[Nmesh]-τ[Nmesh-2])/(2*h)
+    dτ[Nmesh]=(-τ[Nmesh-2]+4*τ[Nmesh-1]-3*τ[Nmesh])/(2*(-h))
+
+    return dτ
 end
 
 function Calc_J(occ,States::Vector{SingleParticleState},rmesh)
@@ -450,12 +466,25 @@ function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
 end
 
 function Calc_VΛΛ(aΛ,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64})
-    # aΛ[2] がおかしそう。
-    return @. aΛ[1]*ρN+aΛ[2]*(ρN*dτΛ+τN)-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
+    return @. aΛ[1]*ρN+aΛ[2]*τN-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
+    #return @. aΛ[1]*ρN+aΛ[2]*(ρN*dτΛ+τN)-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
+end
+
+# Guleria Ver.
+function Calc_VΛΛ(aΛ,γ,ρN::Vector{Float64},ddρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},dτΛ::Vector{Float64})
+    return @. aΛ[1]*ρN+aΛ[2]*(ρN*dτΛ+τN)+aΛ[3]*(-LapρN+2*ddρN)+aΛ[4]*ρN^(γ+1)
+    #return @. aΛ[1]*ρN+aΛ[2]*(ρN*dτΛ+τN)-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
 end
 
 function Calc_VΛN(aΛ,γ,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64})
     return @. aΛ[1]*ρΛ+aΛ[2]*τΛ-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
+    #return @. aΛ[1]*ρΛ+aΛ[2]*(τΛ+dτN*ρΛ)-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
+end
+
+# Guleria Ver.
+function Calc_VΛN(aΛ,γ,ρΛ,τΛ,dτN,LapρΛ,ddρΛ,ρN)
+    return @. aΛ[1]*ρΛ+aΛ[2]*(τΛ+dτN*ρΛ)+aΛ[3]*(-LapρΛ+2*ddρΛ)+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
+    #return @. aΛ[1]*ρΛ+aΛ[2]*(τΛ+dτN*ρΛ)-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
 end
 
 function Calc_VNq(aN,σ,W0,ρN,ρq,τN,τq,LapρN,Lapρq,divJN,divJq)
@@ -528,12 +557,25 @@ function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
+    dτ3=zeros(Float64,(3,Nmesh))
+    ddρ3=zeros(Float64,(3,Nmesh))
+    for b in 1:3
+        dτ3[b,:]=Calc_dτ(τ3[b,:],rmesh)
+        ddρ3[b,:]=Calc_ddρ(ρ3[b,:],rmesh)
+    end
+    dτN=dτ3[1,:]+dτ3[2,:]
+    ddρN=ddρ3[1,:]+ddρ3[2,:]
+
     h2m=zeros(Float64,(3,Nmesh))
     dh2m=zeros(Float64,(3,Nmesh))
     ddh2m=zeros(Float64,(3,Nmesh))
     V=zeros(Float64,(3,Nmesh))
     W=zeros(Float64,(3,Nmesh))
 
+    # Guleria
+    #VΛΛ=Calc_VΛΛ(aΛ,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
+    #VΛN=Calc_VΛN(aΛ,pΛ.γ,ρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ddρ3[3,:],ρN)
+    # Rayet
     VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN)
     VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])

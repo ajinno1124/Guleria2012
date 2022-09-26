@@ -18,7 +18,7 @@ plt.rcParams['figure.subplot.bottom'] = 0.15
 d1_pot=pd.read_csv('../data/Z8N8L1_SLy4HPL2/potential.csv',comment='#')
 d2_pot=pd.read_csv('../data/Z20N20L1_SLy4HPL2/potential.csv',comment='#')
 d3_pot=pd.read_csv('../data/Z39N50L1_SLy4HPL2/potential.csv',comment='#')
-#d4_pot=pd.read_csv('../data/Z57N82L1_SLy4HPL2/potential.csv',comment='#')
+d4_pot=pd.read_csv('../data/Z57N82L1_SLy4HPL2/potential.csv',comment='#')
 d5_pot=pd.read_csv('../data/Z82N126L1_SLy4HPL2/potential.csv',comment='#')
 
 #print(d1_pot.head)
@@ -31,7 +31,7 @@ ax = subplot(1,1,1)
 ax.plot(d1_pot["r(fm)"],d1_pot["Vll(MeV)"],label=r"$^{17}_\Lambda$O",linewidth=2,color="r")
 ax.plot(d2_pot["r(fm)"],d2_pot["Vll(MeV)"],label=r"$^{41}_\Lambda$Ca",linewidth=2,color="darkgreen")
 ax.plot(d3_pot["r(fm)"],d3_pot["Vll(MeV)"],label=r"$^{90}_\Lambda$Y",linewidth=2,color="m")
-#ax.plot(d4_pot["r(fm)"],d4_pot["Vll(MeV)"],label=r"$^140_\Lambda$La",linewidth=2,color="b")
+ax.plot(d4_pot["r(fm)"],d4_pot["Vll(MeV)"],label=r"$^140_\Lambda$La",linewidth=2,color="b")
 ax.plot(d5_pot["r(fm)"],d5_pot["Vll(MeV)"],label=r"$^{209}_\Lambda$Pb",linewidth=2,color="k")
 
 ax.text(1,-4,r'SLy4',{'color':'k','fontsize':14})

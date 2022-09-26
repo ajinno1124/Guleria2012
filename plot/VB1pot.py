@@ -11,7 +11,7 @@ import cmath
 
 #plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['text.usetex'] = True
+plt.rcParams['text.usetex'] = False
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
 

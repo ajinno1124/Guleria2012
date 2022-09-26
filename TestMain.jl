@@ -111,7 +111,7 @@ function TestDensity()
     Checkρ=MyLib.IntTrap(rmesh,@. 4*π*rmesh[:]^2*ρ3[1,:])
     Checkρ+=4*π*rmesh[1]^3*ρ3[1,1]/2
     println("check Z=$(AN.Z): Integrate ρ=$(Checkρ)")
-    plot(xlabel="r",ylabel="Density",xlim=(0,2))
+    plot(xlabel="r",ylabel="Density",xlim=(0,10))
     plot!(rmesh,ρ3[b,:],label="ρ")
     plot!(rmesh,dρ3[b,:],label="dρ")
     plot!(rmesh,τ3[b,:],label="τ")
@@ -142,10 +142,22 @@ function TestHFiter(;NParamType="SLy4",ΛParamType="HPL2")
     JN=J3[1,:]+J3[2,:]
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
+
+    dτ3=zeros(Float64,(3,Nmesh))
+    ddρ3=zeros(Float64,(3,Nmesh))
+    for b in 1:3
+        dτ3[b,:]=Calc_dτ(τ3[b,:],rmesh)
+        ddρ3[b,:]=Calc_ddρ(ρ3[b,:],rmesh)
+    end
+    dτN=dτ3[1,:]+dτ3[2,:]
+    ddρN=ddρ3[1,:]+ddρ3[2,:]
+
     aN=NuclParameters.getaN(NParamType)
     aΛ=LambdaParameters.getaΛ(ΛParamType)
     pN=NuclParameters.getParams(NParamType)
     pΛ=LambdaParameters.getParams(ΛParamType)
+    #VΛΛ=Calc_VΛΛ(aΛ,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
+    #VΛN=Calc_VΛN(aΛ,pΛ.γ,ρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ddρ3[3,:],ρN)
     VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN)
     VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
@@ -153,11 +165,11 @@ function TestHFiter(;NParamType="SLy4",ΛParamType="HPL2")
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
     
     plot(xlabel="r")
-    plot!(rmesh,ρ3[1,:],label="proton")
-    plot!(rmesh,ρ3[2,:],label="neutron")
-    plot!(rmesh,ρ3[3,:],label="Λ")
+    #plot!(rmesh,ρ3[1,:],label="proton")
+    #plot!(rmesh,ρ3[2,:],label="neutron")
+    #plot!(rmesh,ρ3[3,:],label="Λ")
     #plot!(rmesh,VNp,label="VNp")
-    #plot!(rmesh,VΛΛ,label="VΛΛ",xlim=(0,10))
+    plot!(rmesh,VΛΛ,label="VΛΛ",xlim=(0,10))
     #plot!(rmesh,VΛN,label="VΛN",xlim=(0,10))
     #plot!(rmesh,Vcoul,label="Vcoul")
     plot!()
