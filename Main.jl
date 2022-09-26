@@ -317,7 +317,7 @@ function Calc_dρ(ρ,rmesh)
     end
     dρ[Nmesh-1]=(ρ[Nmesh]-ρ[Nmesh-2])/(2*h)
     dρ[Nmesh]=(-ρ[Nmesh-2]+4*ρ[Nmesh-1]-3*ρ[Nmesh])/(2*(-h))
-    
+
     return dρ
 end
 
@@ -388,7 +388,7 @@ function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
         end
         if l>0
             @. τ[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr[2:Nmesh]^2/rmesh[2:Nmesh]^2
-        end        
+        end
     end
     return τ
 end
@@ -429,7 +429,7 @@ function Calc_dJ(J,rmesh)
     dJ[1]=(-J[3]/12 + J[2]*2/3 + J[2]*2/3 - J[3]/12)/h
     dJ[2]=(-J[4]/12 + J[3]*2/3 - J[1]*2/3 - J[2]/12)/h
     for i in 3:Nmesh-2
-        dJ[i]=(-J[i+2]/12 + J[i+1]*2/3 - J[i-1]*2/3 - J[i-2]/12)/h
+        dJ[i]=(-J[i+2]/12 + J[i+1]*2/3 - J[i-1]*2/3 + J[i-2]/12)/h
     end
     dJ[Nmesh-1]=(J[Nmesh]-J[Nmesh-2])/(2*h)
     dJ[Nmesh]=(-J[Nmesh-2]+4*J[Nmesh-1]-3*J[Nmesh])/(2*(-h))
@@ -505,7 +505,7 @@ function Calc_Vcoul(ρp::Vector{Float64},rmesh,Z)
     Vcoul*=e2MeVfm #Reainhard
 
     return Vcoul
-    
+
 end
 
 function Calc_Wq(aN,W0,dρN::Vector{Float64},dρq::Vector{Float64},JN::Vector{Float64},Jq::Vector{Float64})
