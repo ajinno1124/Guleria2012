@@ -142,7 +142,7 @@ module LambdaParameters
             u2 = -8.584
             u3p = 1746.041
             y0 = -0.223
-            y3 = -0.389 
+            y3 = -0.389
         elseif ParamType=="HPL2"
             γ = 1
             u0 = -399.946

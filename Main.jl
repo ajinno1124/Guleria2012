@@ -287,6 +287,9 @@ function InitialCondition(AN::AtomNum)
 end
 
 ##########################################################
+# r=0での値を返す関数
+function InterPolEvenFunc0()
+end
 # defene Density, Potential
 function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
     ρ=zeros(Float64,Nmesh)
