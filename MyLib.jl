@@ -8,32 +8,43 @@ module MyLib
         return ans
     end
 
-    #return the Vector of dydx
-    function diff1st(h::Float64,y::AbstractArray)
-        N=length(y)
-        dydx=zeros(Float64,N)
-        dydx[1]=(y[2]-y[1])/h # order(h)
-        #dydx[1]=(-y[3]+4*y[2]-3*y[1])/(2*h) #order(h^2)
-        for i in 2:N-1
-            dydx[i]=(y[i+1]-y[i-1])/(2*h)
-        end
-        #dydx[N]=(y[N]-y[N-1])/h
-        dydx[N]=(-y[N-2]+4*y[N-1]-3*y[N])/(2*(-h))
+	# y[1]=y[i-2], y[2]=y[i-1], y[3]=y[i], y[4]=y[i+1], y[5]=y[i+2]
+	function diff1st5pt(h,y::Vector{Float64})
+		return (-y[5]/12 + y[4]*2/3 - y[2]*2/3 + y[1]/12)/h
+	end
 
-        return dydx
+	# only used the rmesh=0:h:...
+    function diff1st5pt(h::Float64,y::Vector{Float64},P::Int)
+        N=length(y)
+        dy=zeros(Float64,N)
+        dy[1]=(-y[3]/12 + y[2]*2/3 - P*y[2]*2/3 + P*y[3]/12)/h
+		dy[2]=(-y[4]/12 + y[3]*2/3 - y[1]*2/3 + P*y[2]/12)/h
+		for i in 3:N-2
+			dy[i]=diff1st5pt(h,y[i-2:i+2])
+		end
+		dy[N-1]=(y[N]-y[N-2])/(2*h)
+		dy[N]=(-y[N-2]+4*y[N-1]-3*y[N])/(2*(-h))
+
+        return dy
     end
 
-    function diff2nd(h::Float64,y::AbstractArray)
-        N=length(y)
-        ddyddx=zeros(Float64,N)
-        #ddyddx[1]=(y[2]-2*y[1])/(h^2)
-        ddyddx[1]=(2*y[1]-5*y[2]+4*y[3]-y[4])/(h^2)
-        for i in 2:N-1
-            ddyddx[i]=(y[i+1]-2*y[i]+y[i-1])/(h^2)
-        end
-        ddyddx[N]=(2*y[N]-5*y[N-1]+4*y[N-2]-y[N-3])/(h^2)
+	function diff2nd5pt(h,y::Vector{Float64})
+		return (-y[5]/12 + y[4]*4/3 - y[3]*5/2 + y[2]*4/3 - y[1]/12)/h^2
+	end
 
-        return ddyddx
+    function diff2nd5pt(h::Float64,y::Vector{Float64},P::Int)
+        N=length(y)
+        ddy=zeros(Float64,N)
+        ddy=zeros(Float64,N)
+		ddy[1]=(-y[3]/12 + y[2]*4/3 - y[1]*5/2 + P*y[2]*4/3 - P*y[3]/12)/h^2
+		ddy[2]=(-y[4]/12 + y[3]*4/3 - y[2]*5/2 + y[1]*4/3 - P*y[2]/12)/h^2
+		for i in 3:N-2
+			ddy[i]=diff2nd5pt(h,y[i-2:i+2])
+		end
+		ddy[N-1]=(y[N]-2*y[N-1]+y[N-2])/(h^2)
+		ddy[N]=(2*y[N]-5*y[N-1]+4*y[N-2]-y[N-3])/(h^2)
+
+        return ddy
     end
 
     # ref. 計算物理学
@@ -62,12 +73,12 @@ module MyLib
     #using isnan() to check the convergence
     function MyBisect(GivenLow, GivenUp, F::Function, args;rtol=1e-4)
         @assert GivenLow<GivenUp
-    
+
         low=GivenLow
         up=GivenUp
         Flow=F(low,args...)
         Fup=F(up,args...)
-        
+
         while abs((low-up)/(low+up)) > rtol
             if Flow*Fup>0
                 return NaN
@@ -81,7 +92,7 @@ module MyLib
                 end
             end
         end
-    
+
         return (up+low)/2
     end
 

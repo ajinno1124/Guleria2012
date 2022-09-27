@@ -13,7 +13,7 @@ using .MyLib
     mAveMeV=(mpMeV+mnMeV)/2
     mΛMeV=1115.683 #\pm 0.006 MeV
     ħc=197.3269804
-    e2MeVfm=1.4400 
+    e2MeVfm=1.4400
 
     Nmesh=300
     Nmatch=75
@@ -153,10 +153,7 @@ function BoundCond(QN,E,A,C,rmesh)
     return Rin,Rout
 end
 
-# y[1]=y[i-2], y[2]=y[i-1], y[3]=y[i], y[4]=y[i+1], y[5]=y[i+2]
-function diff1st5pt(h,y::Vector{Float64})
-    return (-y[5]/12 + y[4]*2/3 - y[2]*2/3 + y[1]/12)/h
-end
+
 
 function WronskyEuler(E,QN::QuantumNumber,A,C,rmesh)
     h=rmesh[2]-rmesh[1]
@@ -179,8 +176,8 @@ function WronskyEuler(E,QN::QuantumNumber,A,C,rmesh)
         Rout[1]=Numerov6(ψvec,fvec,-h)
     end
 
-    dRin=diff1st5pt(h,Rin)
-    dRout=diff1st5pt(h,Rout)
+    dRin=MyLib.diff1st5pt(h,Rin)
+    dRout=MyLib.diff1st5pt(h,Rout)
 
     return Rin[3]*dRout-Rout[3]*dRin
 end
@@ -227,7 +224,7 @@ function CalcStates(QN::QuantumNumber,h2mB,dh2mB,ddh2mB,VB,WB,rmesh)
     A,C=CalcABC(QN,h2mB,dh2mB,ddh2mB,VB,WB,rmesh)
     Erange=-100.0:0.0 #In BCS approx., E>0 state also needs to be calculated.
     args=[QN,A,C,rmesh]
-    
+
     for i in 1:(length(Erange)-1)
         Eans=MyLib.MyBisect(Erange[i],Erange[i+1],WronskyEuler,args,rtol=1e-6) #WronskyEuler(E,QN::QuantumNumber,A,B,C,rmesh)
         if isnan(Eans)==true
@@ -309,32 +306,16 @@ end
 
 function Calc_dρ(ρ,rmesh)
     h=rmesh[2]-rmesh[1]
-    dρ=zeros(Float64,Nmesh)
-    dρ[1]=0 #odd function 
-    dρ[2]=(-ρ[4]/12 + ρ[3]*2/3 - ρ[1]*2/3 + ρ[2]/12)/h
-    for i in 3:Nmesh-2
-        dρ[i]=diff1st5pt(h,ρ[i-2:i+2])
-    end
-    dρ[Nmesh-1]=(ρ[Nmesh]-ρ[Nmesh-2])/(2*h)
-    dρ[Nmesh]=(-ρ[Nmesh-2]+4*ρ[Nmesh-1]-3*ρ[Nmesh])/(2*(-h))
+	P=1 #ρ is even function
+    dρ=MyLib.diff1st5pt(h,ρ,P)
 
     return dρ
 end
 
-function diff2nd5pt(h,y::Vector{Float64})
-    return (-y[5]/12 + y[4]*4/3 - y[3]*5/2 + y[2]*4/3 - y[1]/12)/h^2
-end
-
 function Calc_ddρ(ρ,rmesh)
     h=rmesh[2]-rmesh[1]
-    ddρ=zeros(Float64,Nmesh)
-    ddρ[1]=(-ρ[3]/12 + ρ[2]*4/3 - ρ[1]*5/2 + ρ[2]*4/3 - ρ[3]/12)/h^2
-    ddρ[2]=(-ρ[4]/12 + ρ[3]*4/3 - ρ[2]*5/2 + ρ[1]*4/3 - ρ[2]/12)/h^2
-    for i in 3:Nmesh-2
-        ddρ[i]=diff2nd5pt(h,ρ[i-2:i+2])
-    end
-    ddρ[Nmesh-1]=(ρ[Nmesh]-2*ρ[Nmesh-1]+ρ[Nmesh-2])/(h^2)
-    ddρ[Nmesh]=(2*ρ[Nmesh]-5*ρ[Nmesh-1]+4*ρ[Nmesh-2]-ρ[Nmesh-3])/(h^2)
+	P=1 #ρ is even function
+    ddρ=MyLib.diff2nd5pt(h,ρ,P)
 
     return ddρ
 end
@@ -346,6 +327,7 @@ function Calc_Lapρ(ρ::Vector{Float64},rmesh)
     ddρ=Calc_ddρ(ρ,rmesh)
     dρr=zeros(Float64,Nmesh)
     #dρr[1]=dρ[2]/rmesh[2]
+	#ちょっとなめらかじゃ無い…
     dρr[1]=(rmesh[3]^2*dρ[2]/rmesh[2]-rmesh[2]^2*dρ[3]/rmesh[3])
     dρr[1]/=rmesh[3]^2-rmesh[2]^2
     @. dρr[2:Nmesh]=dρ[2:Nmesh]/rmesh[2:Nmesh]
@@ -373,17 +355,12 @@ function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
         end
         @. Rr[2:Nmesh]=R[2:Nmesh]/rmesh[2:Nmesh]
 
-        dRr[1]=(-Rr[3]/12 + Rr[2]*2/3 - P_Rr*Rr[2]*2/3 + P_Rr*Rr[3]/12)/h
-        dRr[2]=(-Rr[4]/12 + Rr[3]*2/3 - Rr[1]*2/3 + P_Rr*Rr[2]/12)/h
-        for i in 3:Nmesh-2
-            dRr[i]=(-Rr[i+2]/12 + Rr[i+1]*2/3 - Rr[i-1]*2/3 + Rr[i-2]/12)/h
-        end
-        dRr[Nmesh-1]=(Rr[Nmesh]-Rr[Nmesh-2])/(2*h)
-        dRr[Nmesh]=(-Rr[Nmesh-2]+4*Rr[Nmesh-1]-3*Rr[Nmesh])/(2*(-h))
+		dRr=MyLib.diff1st5pt(h,Rr,P_Rr)
 
         @. τ[:]+=occ[i]*(2*j+1)/(4*π)*dRr[:]^2
 
         if l==1
+			# しょぼい内挿
             τ[1]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr[2]^2/rmesh[2]^2
         end
         if l>0
@@ -396,16 +373,8 @@ end
 # τ: Parity even
 function Calc_dτ(τ,rmesh)
     h=rmesh[2]-rmesh[1]
-    dτ=zeros(Float64,Nmesh)
     P_τ=1
-    #dτ[1]=(-τ[3]/12 + τ[2]*2/3 - P_τ*τ[2]*2/3 + P_τ*τ[3]/12)/h
-    dτ[1]=0
-    dτ[2]=(-τ[4]/12 + τ[3]*2/3 - τ[1]*2/3 + P_τ*τ[2]/12)/h
-    for i in 3:Nmesh-2
-        dτ[i]=(-τ[i+2]/12 + τ[i+1]*2/3 - τ[i-1]*2/3 + τ[i-2]/12)/h
-    end
-    dτ[Nmesh-1]=(τ[Nmesh]-τ[Nmesh-2])/(2*h)
-    dτ[Nmesh]=(-τ[Nmesh-2]+4*τ[Nmesh-1]-3*τ[Nmesh])/(2*(-h))
+    dτ=MyLib.diff1st5pt(h,τ,P_τ)
 
     return dτ
 end
@@ -585,20 +554,20 @@ function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
     for b in 1:3
         if b==1 #proton
             h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
-            dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
-            ddh2m[b,:]+=MyLib.diff2nd(h,h2m[b,:])
+            dh2m[b,:]+=MyLib.diff1st5pt(h,h2m[b,:],1)
+            ddh2m[b,:]+=MyLib.diff2nd5pt(h,h2m[b,:],1)
             V[b,:]+=VΛN+VNp+Vcoul
             W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==2 #neutron
             h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
-            dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
-            ddh2m[b,:]+=MyLib.diff2nd(h,h2m[b,:])
+            dh2m[b,:]+=MyLib.diff1st5pt(h,h2m[b,:],1)
+            ddh2m[b,:]+=MyLib.diff2nd5pt(h,h2m[b,:],1)
             V[b,:]+=VΛN+VNn
             W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==3 #Lambda
             h2m[b,:]+=Calc_h2mΛ(aΛ,ρN)
-            dh2m[b,:]+=MyLib.diff1st(h,h2m[b,:])
-            ddh2m[b,:]+=MyLib.diff2nd(h,h2m[b,:])
+            dh2m[b,:]+=MyLib.diff1st5pt(h,h2m[b,:],1)
+            ddh2m[b,:]+=MyLib.diff2nd5pt(h,h2m[b,:],1)
             V[b,:]+=VΛΛ
             @. W[b,:]+=0
         end
@@ -758,7 +727,7 @@ function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,ΛParamType)
             for i=eachindex(AnsStates[b])
                 write(io, ",$(AnsStates[b][i].ψ[n])")
             end
-        end 
+        end
         write(io, "\n")
     end
 
