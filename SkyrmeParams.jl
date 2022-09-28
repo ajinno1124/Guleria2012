@@ -25,10 +25,7 @@ module NuclParameters
             x3=1.354
             σ=1/6
             W0=123.0
-        end
-
-        #SLy5
-        if ParamType=="SLy5"
+        elseif ParamType=="SLy5"
             t0=-2484.88
             t1=483.13
             t2=-549.40
@@ -39,10 +36,7 @@ module NuclParameters
             x3=1.267
             σ=1/6
             W0=126.0
-        end
-
-        #SLy6
-        if ParamType=="SLy6"
+        elseif ParamType=="SLy6"
             t0=-2479.50
             t1=462.18
             t2=-448.61
@@ -53,10 +47,7 @@ module NuclParameters
             x3=1.355
             σ=1/6
             W0=122.0
-        end
-
-        #SLy7
-        if ParamType=="SLy7"
+        elseif ParamType=="SLy7"
             t0=-2482.41
             t1=457.97
             t2=-419.85
@@ -67,10 +58,7 @@ module NuclParameters
             x3=1.391
             σ=1/6
             W0=126.0
-        end
-
-        #SkM
-        if ParamType=="SkM*"
+        elseif ParamType=="SkM*"
             t0=-2645.00
             t1=410.00
             t2=-135.00
@@ -81,9 +69,7 @@ module NuclParameters
             x3=0.00
             σ=1/6
             W0=130.0
-        end
-
-        if ParamType=="VB1"
+        elseif ParamType=="VB1"
             t0=-1057.3
             t1=235.9
             t2=-100.0
@@ -94,6 +80,17 @@ module NuclParameters
             x3=0.00
             σ=1
             W0=120.0
+        elseif ParamType=="SKS3"
+            t0=-2014.7
+            t1=361.0
+            t2=-29.5
+            t3=12756
+            x0=-0.319
+            x1=0.732
+            x2=4.95
+            x3=-0.904
+            σ=0.2604
+            W0=94
         end
 
         return NuclParams(t0,t1,t2,t3,x0,x1,x2,x3,σ,W0)
@@ -129,6 +126,7 @@ module LambdaParameters
         u0::Float64
         u1::Float64
         u2::Float64
+        u3::Float64
         u3p::Float64
         y0::Float64
         y3::Float64
@@ -140,6 +138,7 @@ module LambdaParameters
             u0 = -326.395
             u1 = 72.627
             u2 = -8.584
+            u3 = 0.0
             u3p = 1746.041
             y0 = -0.223
             y3 = -0.389
@@ -148,6 +147,7 @@ module LambdaParameters
             u0 = -399.946
             u1 = 83.426
             u2 = 11.455
+            u3 = 0.0
             u3p = 2046.818
             y0 = -0.486
             y3 = -0.660
@@ -156,6 +156,7 @@ module LambdaParameters
             u0 = -498.515
             u1 = 65.203
             u2 = 19.001
+            u3 = 0.0
             u3p = 995.832
             y0 = -0.492
             y3 = -0.444
@@ -164,53 +165,80 @@ module LambdaParameters
             u0 = -475.584
             u1 = 99.058
             u2 = -20.890
+            u3 = 0.0
             u3p = 1375.172
             y0 = -0.350
             y3 = -0.724
-        elseif ParamType=="NΛ1"
+        elseif ParamType=="NL1"
             γ = 1
             u0 = -253.3250
             u1 = 147.1264
             u2 = -83.5843
+            u3 = 0.0
             u3p = 1684.9876
             y0 = 0.5802
             y3 = 0.4831
-        elseif ParamType=="OΛ1"
+        elseif ParamType=="OL1"
             γ = 1
             u0 = -236.5835
             u1 = 116.8704
             u2 = -112.8812
+            u3 = 0.0
             u3p = 1453.3493
             y0 = 0.1271
             y3 = -0.3110
-        elseif ParamType=="NΛ2"
+        elseif ParamType=="NL2"
             γ = 1/3
             u0 = -518.620
             u1 = 82.0944
             u2 = -19.9772
+            u3 = 0.0
             u3p = 1190.1894
             y0 = -0.1392
             y3 = 0.3126
-        elseif ParamType=="OΛ2"
+        elseif ParamType=="OL2"
             γ = 1/3
             u0 = -417.7593
             u1 = 1.5460
             u2 = -3.2617
+            u3 = 0.0
             u3p = 1102.2221
             y0 = -0.3854
             y3 = -0.5645
+        elseif ParamType=="SKSH1"
+            γ = 0
+            u0 = -176.5
+            u1 = -35.8
+            u2 = 44.1
+            u3 = 0.0
+            u3p = 0.0
+            y0 = 0.0
+            y3 = 0.0
+        elseif ParamType=="SKSH2"
+            γ = 0
+            u0 = -290.0
+            u1 = 21.7
+            u2 = -20.3
+            u3 = 1850
+            u3p = 0.0
+            y0 = 0.0
+            y3 = 0.0
         end
 
-        return LambdaParams(γ,u0,u1,u2,u3p,y0,y3)
+        return LambdaParams(γ,u0,u1,u2,u3,u3p,y0,y3)
     end
 
     function getaΛ(ParamType::String)
-        aΛ=zeros(Float64,4)
+        aΛ=zeros(Float64,5)
         p=getParams(ParamType)
         aΛ[1]=p.u0*(1+0.5*p.y0)
         aΛ[2]=0.25*(p.u1+p.u2)
         aΛ[3]=1.0/8.0*(3*p.u1-p.u2)
+        if ParamType=="SKSH1" || ParamType=="SKSH2"
+            aΛ[3]=0.25*(3*p.u1-p.u2)
+        end
         aΛ[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
+        aΛ[5]=0.25*p.u3
 
         return aΛ
     end

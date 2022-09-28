@@ -121,9 +121,9 @@ function TestDensity()
     
 end
 
-function TestHFiter(;NParamType="SLy4",ΛParamType="HPL2")
+function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
     AN=AtomNum(82,126,1)
-    Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,ΛParamType=ΛParamType,MaxIter=50)
+    Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50)
     b=3
     for i=eachindex(AnsStates[b])
         occ=Ansocc[b][i]
@@ -153,13 +153,14 @@ function TestHFiter(;NParamType="SLy4",ΛParamType="HPL2")
     ddρN=ddρ3[1,:]+ddρ3[2,:]
 
     aN=NuclParameters.getaN(NParamType)
-    aΛ=LambdaParameters.getaΛ(ΛParamType)
+    aΛ=LambdaParameters.getaΛ(LParamType)
     pN=NuclParameters.getParams(NParamType)
-    pΛ=LambdaParameters.getParams(ΛParamType)
+    pΛ=LambdaParameters.getParams(LParamType)
     #VΛΛ=Calc_VΛΛ(aΛ,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
     #VΛN=Calc_VΛN(aΛ,pΛ.γ,ρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ddρ3[3,:],ρN)
-    VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN)
-    VΛN=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:])
+    VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+    VΛp=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+    VΛn=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
