@@ -19,7 +19,7 @@ using .MyLib
     Nmatch=150
     rmax=30
     lmax=6
-
+    isCM=2 #c.m.の扱い方。1: posteori, 2: VB72
 end
 
 mutable struct QuantumNumber
@@ -421,15 +421,10 @@ end
 
 ##################################################3
 # define potential
-
 function Calc_h2mN(b,aN,aΛ,ρN::Vector{Float64},ρq::Vector{Float64},ρΛ::Vector{Float64})
     QN=QuantumNumber(0,0,b)
     m=getmass(QN)
     return @. ħc^2/(2*m)+aN[5]*ρN[:]+aN[6]*ρq[:]+aΛ[2]*ρΛ[:]
-end
-
-function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
-    return @. ħc^2/(2*mΛMeV)+aΛ[2]*ρN
 end
 
 function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
@@ -448,7 +443,6 @@ end
 
 function Calc_VΛN(aΛ,γ,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
     return @. aΛ[1]*ρΛ+aΛ[2]*τΛ-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ+2*aΛ[5]*ρΛ*(ρN+ρq)
-    #return @. aΛ[1]*ρΛ+aΛ[2]*(τΛ+dτN*ρΛ)-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
 end
 
 # Guleria Ver.

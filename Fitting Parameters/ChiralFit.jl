@@ -14,7 +14,7 @@ using DelimitedFiles
     ħc=197.3269804
     ρ0=0.16
 
-    ρ_cutoff=3.5
+    ρ_cutoff=3.0
     k_cutoff=2.5
 end
 
@@ -77,7 +77,8 @@ end
 ###########################################3
 # Calc LParams, from ,a, b, c
 
-function Calc_LParams(a,b,c)
+# aΛ[3]=0.125*(3u1-u2)=0
+function Calc_LParams1(a,b,c)
     γ=1/3
     u0=a/ρ0
     u1=c/ρ0^(5/3)*5.0/3.0*(3*π^2/2)^(-2/3)
@@ -89,7 +90,7 @@ function Calc_LParams(a,b,c)
     return [γ,u0,u1,u2,u3,u3p,y0,y3]
 end
 
-function Calc_GKWCoef()
+function Calc_GKWCoef1()
     a,b,c=[-154.9, 142.4, -21.4]
     println("GKW2: [γ,u0,u1,u2,u3,u3p,y0,y3]")
     println("= $(Calc_LParams(a,b,c))\n")
