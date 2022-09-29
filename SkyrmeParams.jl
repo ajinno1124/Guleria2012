@@ -223,6 +223,24 @@ module LambdaParameters
             u3p = 0.0
             y0 = 0.0
             y3 = 0.0
+        elseif ParamType=="GKW2"
+            γ = 1/3
+            u0 = -968.125
+            u1 = -125.44938856118907
+            u2 = -376.34816568356723
+            u3 = 0.0
+            u3p = 4371.717378386592
+            y0 = 0.0
+            y3 = 0.0
+        elseif ParamType=="GKW3"
+            γ = 1/3
+            u0 = -500.62499999999994
+            u1 = 295.4508964244826
+            u2 = 886.3526892734478
+            u3 = 0.0
+            u3p = 4.912041998187181
+            y0 = 0.0
+            y3 = 0.0
         end
 
         return LambdaParams(γ,u0,u1,u2,u3,u3p,y0,y3)
@@ -234,9 +252,9 @@ module LambdaParameters
         aΛ[1]=p.u0*(1+0.5*p.y0)
         aΛ[2]=0.25*(p.u1+p.u2)
         aΛ[3]=1.0/8.0*(3*p.u1-p.u2)
-        if ParamType=="SKSH1" || ParamType=="SKSH2"
-            aΛ[3]=0.25*(3*p.u1-p.u2)
-        end
+        #if ParamType=="SKSH1" || ParamType=="SKSH2"
+        #    aΛ[3]=0.25*(3*p.u1-p.u2)
+        #end
         aΛ[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
         aΛ[5]=0.25*p.u3
 
