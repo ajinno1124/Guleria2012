@@ -421,34 +421,34 @@ end
 
 ##################################################3
 # define potential
-function Calc_h2mN(b,aN,aΛ,ρN::Vector{Float64},ρq::Vector{Float64},ρΛ::Vector{Float64})
+function Calc_h2mN(b,aN,aL,ρN::Vector{Float64},ρq::Vector{Float64},ρΛ::Vector{Float64})
     QN=QuantumNumber(0,0,b)
     m=getmass(QN)
-    return @. ħc^2/(2*m)+aN[5]*ρN[:]+aN[6]*ρq[:]+aΛ[2]*ρΛ[:]
+    return @. ħc^2/(2*m)+aN[5]*ρN[:]+aN[6]*ρq[:]+aL[2]*ρΛ[:]
 end
 
-function Calc_h2mΛ(aΛ,ρN::Vector{Float64})
-    return @. ħc^2/(2*mΛMeV)+aΛ[2]*ρN
+function Calc_h2mΛ(aL,ρN::Vector{Float64})
+    return @. ħc^2/(2*mΛMeV)+aL[2]*ρN
 end
 
-function Calc_VΛΛ(aΛ,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},ρp::Vector{Float64},ρn::Vector{Float64})
-    return @. aΛ[1]*ρN+aΛ[2]*τN-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)+aΛ[5]*(ρN^2+2*ρp*ρn)
+function Calc_VΛΛ(aL,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},ρp::Vector{Float64},ρn::Vector{Float64})
+    return @. aL[1]*ρN+aL[2]*τN-aL[3]*LapρN+aL[4]*ρN^(γ+1)+aL[5]*(ρN^2+2*ρp*ρn)
 end
 
 # Guleria Ver.
-#function Calc_VΛΛ(aΛ,γ,ρN::Vector{Float64},ddρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},dτΛ::Vector{Float64})
-#    return @. aΛ[1]*ρN+aΛ[2]*(ρN*dτΛ+τN)+aΛ[3]*(-LapρN+2*ddρN)+aΛ[4]*ρN^(γ+1)
-#    #return @. aΛ[1]*ρN+aΛ[2]*(ρN*dτΛ+τN)-aΛ[3]*LapρN+aΛ[4]*ρN^(γ+1)
+#function Calc_VΛΛ(aL,γ,ρN::Vector{Float64},ddρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},dτΛ::Vector{Float64})
+#    return @. aL[1]*ρN+aL[2]*(ρN*dτΛ+τN)+aL[3]*(-LapρN+2*ddρN)+aL[4]*ρN^(γ+1)
+#    #return @. aL[1]*ρN+aL[2]*(ρN*dτΛ+τN)-aL[3]*LapρN+aL[4]*ρN^(γ+1)
 #end
 
-function Calc_VΛN(aΛ,γ,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
-    return @. aΛ[1]*ρΛ+aΛ[2]*τΛ-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ+2*aΛ[5]*ρΛ*(ρN+ρq)
+function Calc_VΛN(aL,γ,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
+    return @. aL[1]*ρΛ+aL[2]*τΛ-aL[3]*LapρΛ+(γ+1)*aL[4]*(ρN^γ)*ρΛ+2*aL[5]*ρΛ*(ρN+ρq)
 end
 
 # Guleria Ver.
-#function Calc_VΛN(aΛ,γ,ρΛ,τΛ,dτN,LapρΛ,ddρΛ,ρN)
-#    return @. aΛ[1]*ρΛ+aΛ[2]*(τΛ+dτN*ρΛ)+aΛ[3]*(-LapρΛ+2*ddρΛ)+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
-#    #return @. aΛ[1]*ρΛ+aΛ[2]*(τΛ+dτN*ρΛ)-aΛ[3]*LapρΛ+(γ+1)*aΛ[4]*(ρN^γ)*ρΛ
+#function Calc_VΛN(aL,γ,ρΛ,τΛ,dτN,LapρΛ,ddρΛ,ρN)
+#    return @. aL[1]*ρΛ+aL[2]*(τΛ+dτN*ρΛ)+aL[3]*(-LapρΛ+2*ddρΛ)+(γ+1)*aL[4]*(ρN^γ)*ρΛ
+#    #return @. aL[1]*ρΛ+aL[2]*(τΛ+dτN*ρΛ)-aL[3]*LapρΛ+(γ+1)*aL[4]*(ρN^γ)*ρΛ
 #end
 
 function Calc_VNq(aN,σ,W0,ρN,ρq,τN,τq,LapρN,Lapρq,divJN,divJq)
@@ -463,7 +463,8 @@ end
 function Calc_Vcoul(ρp::Vector{Float64},rmesh,Z)
     Vcoul=zeros(Float64,Nmesh)
     Vcoul+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
-    @. Vcoul[:]=Vcoul[:]/rmesh[:]
+    @. Vcoul[2:Nmesh]=Vcoul[2:Nmesh]/rmesh[2:Nmesh]
+    Voucl[1]=InterPolEvenFunc0(Vcoul[2],Vcoul[3],Vcoul[4])
     @. Vcoul[:]+=-(3*ρp[:]/π)^(1/3)
     #Vcoul*=e2MeVfm/2 #Chabanat
     Vcoul*=e2MeVfm #Reainhard
@@ -501,7 +502,7 @@ function Calc_Density(Allocc,AllStates)
     return ρ3,dρ3,Lapρ3,τ3,J3,divJ3
 end
 
-function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
+function Calc_Coef(ρ3,τ3,J3,aN,aL,pN,pΛ,Z)
     dρ3=zeros(Float64,(3,Nmesh))
     Lapρ3=zeros(Float64,(3,Nmesh))
     divJ3=zeros(Float64,(3,Nmesh))
@@ -537,31 +538,31 @@ function Calc_Coef(ρ3,τ3,J3,aN,aΛ,pN,pΛ,Z)
     W=zeros(Float64,(3,Nmesh))
 
     # Guleria
-    #VΛΛ=Calc_VΛΛ(aΛ,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
-    #VΛN=Calc_VΛN(aΛ,pΛ.γ,ρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ddρ3[3,:],ρN)
+    #VΛΛ=Calc_VΛΛ(aL,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
+    #VΛN=Calc_VΛN(aL,pΛ.γ,ρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ddρ3[3,:],ρN)
     # Rayet
-    VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-    VΛp=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-    VΛn=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+    VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+    VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+    VΛn=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,Z)
 
     for b in 1:3
         if b==1 #proton
-            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
+            h2m[b,:]+=Calc_h2mN(b,aN,aL,ρN,ρ3[b,:],ρ3[3,:])
             dh2m[b,:]+=MyLib.diff1st5pt(h,h2m[b,:],1)
             ddh2m[b,:]+=MyLib.diff2nd5pt(h,h2m[b,:],1)
             V[b,:]+=VΛp+VNp+Vcoul
             W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==2 #neutron
-            h2m[b,:]+=Calc_h2mN(b,aN,aΛ,ρN,ρ3[b,:],ρ3[3,:])
+            h2m[b,:]+=Calc_h2mN(b,aN,aL,ρN,ρ3[b,:],ρ3[3,:])
             dh2m[b,:]+=MyLib.diff1st5pt(h,h2m[b,:],1)
             ddh2m[b,:]+=MyLib.diff2nd5pt(h,h2m[b,:],1)
             V[b,:]+=VΛn+VNn
             W[b,:]+=Calc_Wq(aN,pN.W0,dρN,dρ3[b,:],JN,J3[b,:])
         elseif b==3 #Lambda
-            h2m[b,:]+=Calc_h2mΛ(aΛ,ρN)
+            h2m[b,:]+=Calc_h2mΛ(aL,ρN)
             dh2m[b,:]+=MyLib.diff1st5pt(h,h2m[b,:],1)
             ddh2m[b,:]+=MyLib.diff2nd5pt(h,h2m[b,:],1)
             V[b,:]+=VΛΛ
@@ -598,7 +599,7 @@ function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType="HPL1")
     Oldρ3,Olddρ3,OldLapρ3,Oldτ3,OldJ3,OlddivJ3=Calc_Density(Oldocc,OldStates)
 
     aN=NuclParameters.getaN(NParamType)
-    aΛ=LambdaParameters.getaΛ(LParamType)
+    aL=LambdaParameters.getaL(LParamType)
     pN=NuclParameters.getParams(NParamType)
     pΛ=LambdaParameters.getParams(LParamType)
 
@@ -611,7 +612,7 @@ function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType="HPL1")
         #for debug
         #ρptest[i,:]=Calc_ρ(Oldocc[1],OldStates[1],rmesh)
 
-        h2m,dh2m,ddh2m,V,W=Calc_Coef(Oldρ3,Oldτ3,OldJ3,aN,aΛ,pN,pΛ,AN.Z)
+        h2m,dh2m,ddh2m,V,W=Calc_Coef(Oldρ3,Oldτ3,OldJ3,aN,aL,pN,pΛ,AN.Z)
 
         NewStates=CalcAllStates(h2m,dh2m,ddh2m,V,W,rmesh)
         Newocc=Calc_occ(AN,NewStates)
@@ -655,6 +656,7 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType="HPL1")
     WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType)
     WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType)
     WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
+    WriteBindingEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     cd("../..")
 end
 
@@ -754,12 +756,12 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
     h=rmesh[2]-rmesh[1]
 
     aN=NuclParameters.getaN(NParamType)
-    aΛ=LambdaParameters.getaΛ(LParamType)
+    aL=LambdaParameters.getaL(LParamType)
     pN=NuclParameters.getParams(NParamType)
     pΛ=LambdaParameters.getParams(LParamType)
-    VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-    VΛp=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-    VΛn=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+    VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+    VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+    VΛn=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
@@ -815,4 +817,127 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
 
     close(io2)
 
+end
+
+##################################################
+# Calculate Binding Energy
+function Hamiltonian_N(aN,)
+    Hn=zeros(Float64,Nmesh)
+    @. Hn += ħc^2/(2*mpMeV)*τ3[2,:] + ħc^2/(2*mnMeV)*τ3[1,:]
+    @. Hn += aN[1]*ρN[:]^2
+    @. Hn += aN[2]*(ρ3[1,:]^2 + ρ3[2,:]^2)
+    @. Hn += aN[3]*ρN[:]^(σ+2)
+    @. Hn += aN[4]*ρN[:]^σ*(ρ3[1,:]^2 + ρ3[2,:]^2)
+    @. Hn += aN[5]*τN[:]*ρN[:]
+    @. Hn += aN[6]*(τ3[1,:]*ρ3[1,:] + τ3[2,:]*ρ3[2,:])
+    @. Hn += -aN[7]*ρN[:]*LapρN[:]
+    @. Hn += -aN[8]*(ρ3[1,:]*Lapρ3[1,:] + ρ3[2,:]*Lapρ3[2,:])
+    @. Hn += aN[9]*JN[:]^2
+    @. Hn += aN[10]*(J3[1,:]^2 + J3[2,:]^2)
+    return Hn
+end
+
+#function Energy_N()
+#    Hn=Hamiltonian_N()
+#    En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hn[:]))*4*π
+#    return En
+#end
+
+function Hamiltonian_L()
+    Hl=zeros(Float64,Nmesh)
+    @. Hl += ħc^2/(2*mpMeV)*τ3[3,:]
+    @. Hl += aL[1]*ρN[:]*ρ3[3,:]
+    @. Hl += aL[2]*(τ3[3,:]*ρN[:] + τN*ρ3[3,:])
+    @. Hl -= aL[3]*(ρ3[3,:]*LapρN[:])
+    @. Hl += aL[4]*ρN[:]^(γ+1)*ρ3[3,:]
+    @. Hl += aL[5]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
+    return Hl
+end
+
+#function Energy_L()
+#    Hl=Hamiltonian_L()
+#    En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hl[:]))*4*π
+#    return En
+#end
+
+function H_coul_dir(ρp,rmesh,Z)
+    Hcoul_dir=zeros(Float64,Nmesh)
+    Hcoul_dir+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
+    @. Hcoul_dir[2:Nmesh]*=0.5*ρp[2:Nmesh]/rmesh[2:Nmesh]
+    Houcl_dir[1]=InterPolEvenFunc0(Hcoul_dir[2],Hcoul_dir[3],Hcoul_dir[4])
+    #@. Hcoul_exch[:] -= 0.75*ρp[:]*(3*ρp[:]/π)^(1/3)
+    #Hcoul_dir*=e2MeVfm/2 #Chabanatd
+    Hcoul_dir*=e2MeVfm #Reainhard
+
+    return Hcoul_dir
+end
+
+function H_coul_exch(ρp)
+    Hcoul_exch=zeros(Float64,Nmesh)
+    @. Hcoul_exch[:] -= 0.75*ρp[:]*(3*ρp[:]/π)^(1/3)
+    #Hcoul_dir*=e2MeVfm/2 #Chabanatd
+    Hcoul_dir*=e2MeVfm #Reainhard
+
+    return Hcoul_dir
+end
+
+function Energy_Pair()
+    Ep=0.0
+    return Ep
+end
+
+function Energy_CM_dir()
+    Ecmdir=0.0
+    Z=AN.Z
+    N=AN.N
+    Λ=AN.Λ
+    for b in 1:3
+        Ecm_dir += MyLib.IntTrap(rmesh,τ3[b,:])
+    end
+    Ecm_dir*=ħc^2/(2*(mpMeV*Z + mnMeV*N + mΛMeV*Λ))
+    return Ecm_dir
+end
+
+function Energy_CM_exch()
+    Ecm_exch=0.0
+    return Ecm_exch
+end
+
+function SpatialInt(rmesh,H)
+    return MyLib.IntTrap(rmesh,(@. rmesh[:]^2*H[:]))*4*π
+end
+
+function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
+    io1=open("Energy.csv","w")
+    rmesh=getrmesh()
+    Z=AN.Z
+    N=AN.N
+    Λ=AN.Λ
+    write(io1, "# Nuclear Parameter=$(NParamType)\n")
+    write(io1, "# Lambda Parameter=$(LParamType)\n")
+    write(io1, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
+    write(io1, "# Number of mesh=$(Nmesh)\n")
+    write(io1, "# rmax=$(rmax)\n")
+    write(io1, "# Matching point of shooting = $(rmesh[Nmesh])\n\n")
+
+    write(io1,"l, Etot(MeV), EN(MeV), EL(MeV), Ec_dir(MeV), Ec_exch(MeV), Epair(MeV), Ecm_dir(MeV), Ecm_exch(MeV)")
+
+    ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
+    ρN=ρ3[1,:]+ρ3[2,:]
+    dρN=dρ3[1,:]+dρ3[2,:]
+    LapρN=Lapρ3[1,:]+Lapρ3[2,:]
+    τN=τ3[1,:]+τ3[2,:]
+    JN=J3[1,:]+J3[2,:]
+    divJN=divJ3[1,:]+divJ3[2,:]
+    h=rmesh[2]-rmesh[1]
+
+    for i=eachindex(Ansocc[3])
+        if AnsSates[i+1].QN.l==AnsStates[i].QN.l
+            Ansocc[3][i]=1/(2*(2*l+1))
+        elseif i==length(Ansocc[3])
+            break
+        else
+            continue
+        end
+    end
 end
