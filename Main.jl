@@ -931,7 +931,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-    for i=eachindex(Ansocc[3])
+    for i=1:2:length(Ansocc[3])
         if AnsSates[i+1].QN.l==AnsStates[i].QN.l
             Ansocc[3][i]=1/(2*(2*l+1))
         elseif i==length(Ansocc[3])
