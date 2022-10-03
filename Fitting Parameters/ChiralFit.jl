@@ -93,10 +93,10 @@ end
 function Calc_GKWCoef1()
     a,b,c=[-154.9, 142.4, -21.4]
     println("GKW2: [γ,u0,u1,u2,u3,u3p,y0,y3]")
-    println("= $(Calc_LParams(a,b,c))\n")
+    println("= $(Calc_LParams1(a,b,c))\n")
     a,b,c=[-80.1, 0.16, 50.4]
     println("GKW3: [γ,u0,u1,u2,u3,u3p,y0,y3]")
-    println("= $(Calc_LParams(a,b,c))\n")
+    println("= $(Calc_LParams1(a,b,c))\n")
 end
 
 include("../SkyrmeParams.jl")

@@ -246,19 +246,19 @@ module LambdaParameters
         return LambdaParams(γ,u0,u1,u2,u3,u3p,y0,y3)
     end
 
-    function getaΛ(ParamType::String)
-        aΛ=zeros(Float64,5)
+    function getaL(ParamType::String)
+        aL=zeros(Float64,5)
         p=getParams(ParamType)
-        aΛ[1]=p.u0*(1+0.5*p.y0)
-        aΛ[2]=0.25*(p.u1+p.u2)
-        aΛ[3]=1.0/8.0*(3*p.u1-p.u2)
+        aL[1]=p.u0*(1+0.5*p.y0)
+        aL[2]=0.25*(p.u1+p.u2)
+        aL[3]=1.0/8.0*(3*p.u1-p.u2)
         #if ParamType=="SKSH1" || ParamType=="SKSH2"
-        #    aΛ[3]=0.25*(3*p.u1-p.u2)
+        #    aL[3]=0.25*(3*p.u1-p.u2)
         #end
-        aΛ[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
-        aΛ[5]=0.25*p.u3
+        aL[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
+        aL[5]=0.25*p.u3
 
-        return aΛ
+        return aL
     end
 
 end
