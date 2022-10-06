@@ -69,6 +69,17 @@ module NuclParameters
             x3=0.00
             σ=1/6
             W0=130.0
+		elseif ParamType=="SK3"
+            t0=-1128.75
+            t1=395.0
+            t2=-95.0
+            t3=14000.0
+            x0=0.45
+            x1=0.00
+            x2=0.00
+            x3=1.0
+            σ=1.0
+            W0=120.0
         elseif ParamType=="VB1"
             t0=-1057.3
             t1=235.9
@@ -232,6 +243,15 @@ module LambdaParameters
             u3p = 0.0
             y0 = 0.0
             y3 = 0.0
+		elseif ParamType=="LY1"
+			γ = 1.0/3.0
+            u0 = -476.0
+            u1 = 42.0
+            u2 = 23.0
+            u3 = 0.0
+            u3p = 1514.1
+            y0 = -0.0452
+            y3 = -0.280
         elseif ParamType=="GKW2"
             γ = 1/3
             u0 = -968.125
