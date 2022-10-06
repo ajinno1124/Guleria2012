@@ -432,7 +432,7 @@ function Calc_h2mΛ(AN::AtomNum,aL,ρN::Vector{Float64})
 	N=AN.N
 	Z=AN.Z
 	Λ=AN.Λ
-    return @. ħc^2/(2*mΛMeV)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ))+aL[2]*ρN
+    return @. ħc^2/(2*mΛMeV)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ))+aL[2]*ρN[:]
 end
 
 function Calc_VΛΛ(aL,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},ρp::Vector{Float64},ρn::Vector{Float64})

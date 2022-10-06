@@ -118,12 +118,12 @@ function TestDensity()
     plot!(rmesh,J3[b,:],label="J")
     plot!(rmesh,Lapρ3[b,:],label="Lapρ")
     plot!(rmesh,divJ3[b,:],label="divJ")
-    
+
 end
 
 function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
-    AN=AtomNum(82,125,1)
-    #AN=AtomNum(82,126,1)
+    #AN=AtomNum(82,125,1)
+    AN=AtomNum(82,126,1)
     Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50)
     b=3
     for i=eachindex(AnsStates[b])
@@ -135,7 +135,7 @@ function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
     end
 
     rmesh=getrmesh()
-    ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
+	ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
     ρN=ρ3[1,:]+ρ3[2,:]
     dρN=dρ3[1,:]+dρ3[2,:]
     LapρN=Lapρ3[1,:]+Lapρ3[2,:]
@@ -144,26 +144,13 @@ function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-    dτ3=zeros(Float64,(3,Nmesh))
-    ddρ3=zeros(Float64,(3,Nmesh))
-    for b in 1:3
-        dτ3[b,:]=Calc_dτ(τ3[b,:],rmesh)
-        ddρ3[b,:]=Calc_ddρ(ρ3[b,:],rmesh)
-    end
-    dτN=dτ3[1,:]+dτ3[2,:]
-    ddρN=ddρ3[1,:]+ddρ3[2,:]
-
     aN=NuclParameters.getaN(NParamType)
-    aΛ=LambdaParameters.getaL(LParamType)
+    aL=LambdaParameters.getaL(LParamType)
     pN=NuclParameters.getParams(NParamType)
     pΛ=LambdaParameters.getParams(LParamType)
-    VΛΛ=Calc_VΛΛ(aΛ,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
-	VΛp=Calc_VΛN(aΛ,pΛ.γ,ρN,ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-	VΛn=Calc_VΛN(aΛ,pΛ.γ,ρN,ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
-    #VΛp=Calc_VΛN(aΛ,pΛ.γ,ρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ddρ3[3,:],ρN)
-    #VΛΛ=Calc_VΛΛ(aΛ, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-    #VΛp=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-    #VΛn=Calc_VΛN(aΛ, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+    VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+    VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+    VΛn=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)

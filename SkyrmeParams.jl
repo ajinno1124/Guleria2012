@@ -69,17 +69,17 @@ module NuclParameters
             x3=0.00
             σ=1/6
             W0=130.0
-        #elseif ParamType=="VB1"
-        #    t0=-1057.3
-        #    t1=235.9
-        #    t2=-100.0
-        #    t3=14463.5
-        #    x0=0.56
-        #    x1=0.00
-        #    x2=0.00
-        #    x3=0.00
-        #    σ=1
-        #    W0=120.0
+        elseif ParamType=="VB1"
+            t0=-1057.3
+            t1=235.9
+            t2=-100.0
+            t3=14463.5
+            x0=0.56
+            x1=0.00
+            x2=0.00
+            x3=0.00
+            σ=1
+            W0=120.0
         elseif ParamType=="SKS3"
             t0=-2014.7
             t1=361.0
@@ -119,10 +119,10 @@ module NuclParameters
         aN[9]=-1/16*(p.t1*p.x1+p.t2*p.x2)
         aN[10]=1/16*(p.t1-p.t2)
 
-        #if ParamType=="VB1"
-        #    aN[3]=p.t3/8
-        #    aN[4]=-aN[3]
-        #end
+        if ParamType=="VB1"
+            aN[3]=p.t3/8
+            aN[4]=-aN[3]
+        end
 
         return aN
     end
@@ -261,9 +261,9 @@ module LambdaParameters
         aL[1]=p.u0*(1+0.5*p.y0)
         aL[2]=0.25*(p.u1+p.u2)
         aL[3]=1.0/8.0*(3*p.u1-p.u2)
-        if ParamType=="SKSH1" || ParamType=="SKSH2"
-            aL[3]=0.25*(3*p.u1-p.u2)
-        end
+        #if ParamType=="SKSH1" || ParamType=="SKSH2"
+        #    aL[3]=0.25*(3*p.u1-p.u2)
+        #end
         aL[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
         aL[5]=0.25*p.u3
 
