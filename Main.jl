@@ -19,7 +19,6 @@ using .MyLib
     Nmatch=150
     rmax=30
     lmax=7
-    isCM=2 #c.m.の扱い方。1: posteori, 2: VB72
 end
 
 mutable struct QuantumNumber
@@ -337,7 +336,6 @@ function Calc_Lapρ(ρ::Vector{Float64},rmesh)
     ddρ=Calc_ddρ(ρ,rmesh)
     dρr=zeros(Float64,Nmesh)
     #dρr[1]=dρ[2]/rmesh[2]
-	#ちょっとなめらかじゃ無い…
     dρr[1]=InterPolEvenFunc0(dρ[2]/rmesh[2],dρ[3]/rmesh[3],dρ[4]/rmesh[4])
     @. dρr[2:Nmesh]=dρ[2:Nmesh]/rmesh[2:Nmesh]
     @. Lapρ[:]+=2*dρr[:] + ddρ[:]
@@ -651,7 +649,6 @@ end
 
 ############################################3
 # out put files
-
 function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType="HPL1", α=0.5)
     Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50,α=α)
 
@@ -665,17 +662,15 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType="HPL1", α=0.5)
     WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType)
     WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
 	if Λ==1
-    	WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
+        WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
 	elseif Λ==0
 		WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	end
     cd("../..")
 end
 
-function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
-    io=open("states.csv","w")
-
-    rmesh=getrmesh()
+function WriteHeader(io::IOStream,AN,NParamType,LParamType)
+	rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
     Λ=AN.Λ
@@ -685,6 +680,25 @@ function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
     write(io, "# Number of mesh=$(Nmesh)\n")
     write(io, "# rmax=$(rmax)\n")
     write(io, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
+end
+
+function WriteHeader(io::IOStream,AN,NParamType)
+	rmesh=getrmesh()
+    Z=AN.Z
+    N=AN.N
+	Λ=AN.Λ
+    write(io, "# Nuclear Parameter=$(NParamType)\n")
+    write(io, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
+    write(io, "# Number of mesh=$(Nmesh)\n")
+    write(io, "# rmax=$(rmax)\n")
+    write(io, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
+end
+
+function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
+    io=open("states.csv","w")
+
+    rmesh=getrmesh()
+    WriteHeader(io,AN,NParamType,LParamType)
     write(io, "Baryon Type, occ, j, l, Energy(MeV)\n")
 
     for b=1:3
@@ -708,16 +722,8 @@ function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType)
     io=open("wavefunc.csv","w")
 
     rmesh=getrmesh()
-    Z=AN.Z
-    N=AN.N
-    Λ=AN.Λ
-    write(io, "# Nuclear Parameter=$(NParamType)\n")
-    write(io, "# Lambda Parameter=$(LParamType)\n")
-    write(io, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
-    write(io, "# Number of mesh=$(Nmesh)\n")
-    write(io, "# rmax=$(rmax)\n")
-    write(io, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
-    write(io, "r(fm)")
+    WriteHeader(io,AN,NParamType,LParamType)
+
     for b in 1:3
         for i=eachindex(AnsStates[b])
             if b==1
@@ -749,14 +755,7 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
     io1=open("density.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
-    N=AN.N
-    Λ=AN.Λ
-    write(io1, "# Nuclear Parameter=$(NParamType)\n")
-    write(io1, "# Lambda Parameter=$(LParamType)\n")
-    write(io1, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
-    write(io1, "# Number of mesh=$(Nmesh)\n")
-    write(io1, "# rmax=$(rmax)\n")
-    write(io1, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
+    WriteHeader(io1,AN,NParamType,LParamType)
 
     ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
     ρN=ρ3[1,:]+ρ3[2,:]
@@ -807,12 +806,7 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
     close(io1)
 
     io2=open("potential.csv","w")
-    write(io2, "# Nuclear Parameter=$(NParamType)\n")
-    write(io2, "# Lambda Parameter=$(LParamType)\n")
-    write(io2, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
-    write(io2, "# Number of mesh=$(Nmesh)\n")
-    write(io2, "# rmax=$(rmax)\n")
-    write(io2, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
+    WriteHeader(io2,AN,NParamType,LParamType)
 
     write(io2, "r(fm)")
     write(io2, ",Vll(MeV),Vlp(MeV),Vln(MeV),VNp(MeV),VNn(MeV),Vcoul(MeV)\n")
@@ -880,7 +874,6 @@ function H_coul_dir(ρp,rmesh,Z)
     Hcoul_dir+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
     @. Hcoul_dir[2:Nmesh]*=0.5*ρp[2:Nmesh]/rmesh[2:Nmesh]
     Hcoul_dir[1]=InterPolEvenFunc0(Hcoul_dir[2],Hcoul_dir[3],Hcoul_dir[4])
-    #@. Hcoul_exch[:] -= 0.75*ρp[:]*(3*ρp[:]/π)^(1/3)
     #Hcoul_dir*=e2MeVfm/2 #Chabanatd
     Hcoul_dir*=e2MeVfm #Reainhard
 
@@ -921,7 +914,7 @@ function Energy_CM_dir(τ3)
     N=AN.N
     Λ=AN.Λ
     for b in 1:3
-        Ecm_dir += MyLib.IntTrap(rmesh,τ3[b,:])
+        Ecm_dir += MyLib.IntTrap(rmesh,@. rmesh[:]^2*τ3[b,:])*4*π
     end
     Ecm_dir*=ħc^2/(2*(mpMeV*Z + mnMeV*N + mΛMeV*Λ))
     return Ecm_dir
@@ -932,18 +925,53 @@ function Energy_CM_exch()
     return Ecm_exch
 end
 
+function Energy_Kin(AN,τ3)
+	E_Kin=0.0
+	rmesh=getrmesh()
+	Z=AN.Z
+	N=AN.N
+	for b in 1:3
+		QN=QuantumNumber(0.5,0,b)
+		mass=getmass(QN)
+		E_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N)))*τ3[b,:] )*4*π
+	end
+	return E_Kin
+end
+
+function Energy_N_R(aN,σ,ρ3,ρN)
+	Hn_R=zeros(Float64,Nmesh)
+	rmesh=getrmesh()
+	@. Hn_R += aN[3]*ρN[:]^(σ+2)
+    @. Hn_R += aN[4]*ρN[:]^σ*(ρ3[1,:]^2 + ρ3[2,:]^2)
+	En_R=0.5*σ*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hn_R[:])*4*π
+
+    En_R+=-1.0/3.0*Energy_coul_exch(ρ3[1,:])
+
+	return En_R
+end
+
+function Energy_L_R()
+
+end
+
+function Energy_SPS(Ansocc,AnsStates)
+	E=0.0
+	for b in 1:3
+		for i=eachindex(Ansocc[b])
+			j=AnsStates[b][i].QN.j
+			E+=Ansocc[b][i]*AnsStates[b][i].E*(2*j+1)
+		end
+	end
+	return E
+end
+
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     io1=open("Energy.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
     Λ=AN.Λ
-    write(io1, "# Nuclear Parameter=$(NParamType)\n")
-    write(io1, "# Lambda Parameter=$(LParamType)\n")
-    write(io1, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
-    write(io1, "# Number of mesh=$(Nmesh)\n")
-    write(io1, "# rmax=$(rmax)\n")
-    write(io1, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
+    WriteHeader(io1,AN,NParamType,LParamType)
 
     aN=NuclParameters.getaN(NParamType)
     aL=LambdaParameters.getaL(LParamType)
@@ -959,7 +987,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-	write(io1,"jLam, lLam, Etot(MeV), EN(MeV), EL(MeV), Ec_dir(MeV), Ec_exch(MeV), Epair(MeV), Ecm_dir(MeV), Ecm_exch(MeV)\n")
+	write(io1,"jLam, lLam, E/A(MeV), Etot(MeV), EN(MeV), EL(MeV), Ec_dir(MeV), Ec_exch(MeV), Epair(MeV), Ecm_dir(MeV), Ecm_exch(MeV)\n")
 
     for i=eachindex(Ansocc[3])
 		#calculate the density assuming the i-th state is filled with 1/(2*j+1) Λ particles each.
@@ -984,6 +1012,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
 
 		write(io1,"$(AnsStates[3][i].QN.j)")
 		write(io1,",$(AnsStates[3][i].QN.l)")
+        write(io1,",$(Etot/(Z+N+Λ))")
 		write(io1,",$(Etot)")
 		write(io1,",$(En)")
 		write(io1,",$(El)")
@@ -1002,13 +1031,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
-    Λ=AN.Λ
-    write(io1, "# Nuclear Parameter=$(NParamType)\n")
-    write(io1, "# Lambda Parameter=$(LParamType)\n")
-    write(io1, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
-    write(io1, "# Number of mesh=$(Nmesh)\n")
-    write(io1, "# rmax=$(rmax)\n")
-    write(io1, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
+    WriteHeader(io1,AN,NParamType,LParamType)
 
     aN=NuclParameters.getaN(NParamType)
     pN=NuclParameters.getParams(NParamType)
@@ -1022,7 +1045,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-	write(io1,"Etot(MeV), 	EN(MeV),	 Ec_dir(MeV),	 Ec_exch(MeV),	 Epair(MeV), 	Ecm_dir(MeV),	 Ecm_exch(MeV)\n")
+	write(io1,"E/A(MeV), Etot(MeV), 	EN(MeV),	 Ec_dir(MeV),	 Ec_exch(MeV),	 Epair(MeV), 	Ecm_dir(MeV),	 Ecm_exch(MeV)\n")
 
 	En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
 	Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,Z)
@@ -1030,9 +1053,10 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	Epair=Energy_Pair()
 	Ecm_dir=Energy_CM_dir(τ3)
 	Ecm_exch=Energy_CM_exch()
-	Etot=En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch
+	Etot = En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch
 
-	write(io1,"$(Etot)")
+    write(io1,"$(Etot/(Z+N))")
+	write(io1,",$(Etot)")
 	write(io1,",$(En)")
 	write(io1,",$(Ec_dir)")
 	write(io1,",$(Ec_exch)")
@@ -1041,4 +1065,24 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	write(io1,",$(Ecm_exch)\n")
 
 	close(io1)
+
+    #using single-particle energy and rearrangement energy
+	io2=open("Energy2.csv","w")
+    WriteHeader(io2,AN,NParamType)
+
+	E_Kin=Energy_Kin(AN,τ3)
+	E_SPS=Energy_SPS(Ansocc,AnsStates)
+	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
+	Etot2=0.5*(E_Kin+E_SPS)- En_R + Epair
+
+	write(io2, "Etot2/A(MeV), Etot2(MeV), EKin(MeV), ESPS(MeV), ER(MeV)\n")
+	write(io2,"$(Etot2/(AN.N+AN.Z))")
+	write(io2,",$(Etot2)")
+	write(io2,",$(E_Kin)")
+	write(io2,",$(E_SPS)")
+	write(io2,",$(En_R)")
+    write(io2,",$(Epair)")
+    write(io2,",$(Ecm_dir)\n")
+
+	close(io2)
 end

@@ -122,7 +122,7 @@ function TestDensity()
 end
 
 function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
-    AN=AtomNum(82,126,1)
+    AN=AtomNum(82,125,1)
     #AN=AtomNum(82,126,1)
     Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50)
     b=3

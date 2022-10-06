@@ -91,6 +91,15 @@ module NuclParameters
             x3=-0.904
             σ=0.2604
             W0=94
+        elseif ParamType=="NaN"
+            γ = 0.0
+            u0 = 0.0
+            u1 = 0.0
+            u2 = 0.0
+            u3 = 0.0
+            u3p = 0.0
+            y0 = 0.0
+            y3 = 0.0
         end
 
         return NuclParams(t0,t1,t2,t3,x0,x1,x2,x3,σ,W0)
@@ -252,9 +261,9 @@ module LambdaParameters
         aL[1]=p.u0*(1+0.5*p.y0)
         aL[2]=0.25*(p.u1+p.u2)
         aL[3]=1.0/8.0*(3*p.u1-p.u2)
-        #if ParamType=="SKSH1" || ParamType=="SKSH2"
-        #    aL[3]=0.25*(3*p.u1-p.u2)
-        #end
+        if ParamType=="SKSH1" || ParamType=="SKSH2"
+            aL[3]=0.25*(3*p.u1-p.u2)
+        end
         aL[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
         aL[5]=0.25*p.u3
 
