@@ -693,6 +693,7 @@ function WriteHeader(io::IOStream,AN,NParamType)
     write(io, "# rmax=$(rmax)\n")
     write(io, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
 end
+<<<<<<< HEAD
 
 function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
     io=open("states.csv","w")
@@ -700,7 +701,14 @@ function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
     rmesh=getrmesh()
     WriteHeader(io,AN,NParamType,LParamType)
     write(io, "Baryon Type, occ, j, l, Energy(MeV)\n")
+=======
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 
+function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
+    io=open("states.csv","w")
+	WriteHeader(io,AN,NParamType,LParamType)
+
+	write(io, "Baryon Type, occ, j, l, Energy(MeV)\n")
     for b=1:3
         for i=eachindex(AnsStates[b])
             j=AnsStates[b][i].QN.j
@@ -720,10 +728,16 @@ end
 
 function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType)
     io=open("wavefunc.csv","w")
+	WriteHeader(io,AN,NParamType,LParamType)
+	rmesh=getrmesh()
 
+<<<<<<< HEAD
     rmesh=getrmesh()
     WriteHeader(io,AN,NParamType,LParamType)
 
+=======
+    write(io, "r(fm)")
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
     for b in 1:3
         for i=eachindex(AnsStates[b])
             if b==1
@@ -753,9 +767,14 @@ end
 
 function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
     io1=open("density.csv","w")
+<<<<<<< HEAD
     rmesh=getrmesh()
     Z=AN.Z
     WriteHeader(io1,AN,NParamType,LParamType)
+=======
+    WriteHeader(io1,AN,NParamType,LParamType)
+	rmesh=getrmesh()
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 
     ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
     ρN=ρ3[1,:]+ρ3[2,:]
@@ -853,7 +872,7 @@ end
 
 function Hamiltonian_L(aL,γ,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
     Hl=zeros(Float64,Nmesh)
-    @. Hl += ħc^2/(2*mpMeV)*τ3[3,:]
+    @. Hl += ħc^2/(2*mΛMeV)*τ3[3,:]
     @. Hl += aL[1]*ρN[:]*ρ3[3,:]
     @. Hl += aL[2]*(τ3[3,:]*ρN[:] + τN*ρ3[3,:])
     @. Hl -= aL[3]*(ρ3[3,:]*LapρN[:])
@@ -925,6 +944,7 @@ function Energy_CM_exch()
     return Ecm_exch
 end
 
+<<<<<<< HEAD
 function Energy_Kin(AN,τ3)
 	E_Kin=0.0
 	rmesh=getrmesh()
@@ -934,6 +954,15 @@ function Energy_Kin(AN,τ3)
 		QN=QuantumNumber(0.5,0,b)
 		mass=getmass(QN)
 		E_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N)))*τ3[b,:] )*4*π
+=======
+function Energy_Kin(τ3)
+	E_Kin=0.0
+	rmesh=getrmesh()
+	for b in 1:3
+		QN=QuantumNumber(0.5,0,b)
+		mass=getmass(QN)
+		E_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*ħc^2/(2*mass)*τ3[b,:] )*4*π
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 	end
 	return E_Kin
 end
@@ -945,8 +974,11 @@ function Energy_N_R(aN,σ,ρ3,ρN)
     @. Hn_R += aN[4]*ρN[:]^σ*(ρ3[1,:]^2 + ρ3[2,:]^2)
 	En_R=0.5*σ*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hn_R[:])*4*π
 
+<<<<<<< HEAD
     En_R+=-1.0/3.0*Energy_coul_exch(ρ3[1,:])
 
+=======
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 	return En_R
 end
 
@@ -967,10 +999,13 @@ end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     io1=open("Energy.csv","w")
+<<<<<<< HEAD
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
     Λ=AN.Λ
+=======
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
     WriteHeader(io1,AN,NParamType,LParamType)
 
     aN=NuclParameters.getaN(NParamType)
@@ -1027,11 +1062,17 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
 end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
+<<<<<<< HEAD
     io1=open("Energy.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
     WriteHeader(io1,AN,NParamType,LParamType)
+=======
+    io1=open("Energy1.csv","w")
+    WriteHeader(io1,AN,NParamType)
+	rmesh=getrmesh()
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 
     aN=NuclParameters.getaN(NParamType)
     pN=NuclParameters.getParams(NParamType)
@@ -1045,27 +1086,39 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
+<<<<<<< HEAD
 	write(io1,"E/A(MeV), Etot(MeV), 	EN(MeV),	 Ec_dir(MeV),	 Ec_exch(MeV),	 Epair(MeV), 	Ecm_dir(MeV),	 Ecm_exch(MeV)\n")
+=======
+	write(io1,"Etot/A(MeV), Etot1(MeV), 	EN(MeV),	 Ec_dir(MeV),	 Ec_exch(MeV),	 Epair(MeV), 	Ecm_dir(MeV),	 Ecm_exch(MeV)\n")
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 
+	#directory integrate energy density functional
 	En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
-	Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,Z)
+	Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,AN.Z)
 	Ec_exch=Energy_coul_exch(ρ3[1,:])
 	Epair=Energy_Pair()
 	Ecm_dir=Energy_CM_dir(τ3)
 	Ecm_exch=Energy_CM_exch()
+<<<<<<< HEAD
 	Etot = En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch
 
     write(io1,"$(Etot/(Z+N))")
 	write(io1,",$(Etot)")
+=======
+	Etot1=En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch
+
+	write(io1,"$(Etot1/(AN.N+AN.Z))")
+	write(io1,",$(Etot1)")
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 	write(io1,",$(En)")
 	write(io1,",$(Ec_dir)")
 	write(io1,",$(Ec_exch)")
 	write(io1,",$(Epair)")
 	write(io1,",$(Ecm_dir)")
 	write(io1,",$(Ecm_exch)\n")
-
 	close(io1)
 
+<<<<<<< HEAD
     #using single-particle energy and rearrangement energy
 	io2=open("Energy2.csv","w")
     WriteHeader(io2,AN,NParamType)
@@ -1076,13 +1129,34 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	Etot2=0.5*(E_Kin+E_SPS)- En_R + Epair
 
 	write(io2, "Etot2/A(MeV), Etot2(MeV), EKin(MeV), ESPS(MeV), ER(MeV)\n")
+=======
+	#using single-particle energy and rearrangement energy
+	io2=open("Energy2.csv","w")
+    WriteHeader(io2,AN,NParamType)
+
+	E_Kin=Energy_Kin(τ3)
+	E_SPS=Energy_SPS(Ansocc,AnsStates)
+	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
+	Etot2=0.5*(E_Kin+E_SPS)- En_R + Epair# - Ecm_dir - Ecm_exch
+
+	write(io2, "Etot2/A(MeV), Etot2(MeV), EKin(MeV), ESPS(MeV), ER(MeV), Epair(MeV), Ecm_dir(MeV), Ecm_exch(MeV)\n")
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 	write(io2,"$(Etot2/(AN.N+AN.Z))")
 	write(io2,",$(Etot2)")
 	write(io2,",$(E_Kin)")
 	write(io2,",$(E_SPS)")
 	write(io2,",$(En_R)")
+<<<<<<< HEAD
     write(io2,",$(Epair)")
     write(io2,",$(Ecm_dir)\n")
 
 	close(io2)
+=======
+	write(io2,",$(Epair)")
+	write(io2,",$(Ecm_dir)")
+	write(io2,",$(Ecm_exch)\n")
+
+	close(io2)
+
+>>>>>>> eed8ed741b6a47311b4a581e387aae3840c0d329
 end
