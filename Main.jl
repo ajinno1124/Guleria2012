@@ -20,8 +20,10 @@ using .MyLib
     rmax=30
     lmax=7
 	isGuleria=0 #if isGuleria=1, VΛΛ is guleria version.
+    isCoul=3 #isCoul=1:, isCoul
 end
 println("isGuleria=$(isGuleria)")
+println("isCoul=$(isCoul)")
 
 mutable struct QuantumNumber
     j::Float64
