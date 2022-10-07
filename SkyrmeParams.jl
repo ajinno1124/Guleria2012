@@ -226,7 +226,7 @@ module LambdaParameters
             y0 = -0.3854
             y3 = -0.5645
         elseif ParamType=="SKSH1"
-            γ = 0
+            γ = 1.0
             u0 = -176.5
             u1 = -35.8
             u2 = 44.1
@@ -235,7 +235,7 @@ module LambdaParameters
             y0 = 0.0
             y3 = 0.0
         elseif ParamType=="SKSH2"
-            γ = 0
+            γ = 1.0
             u0 = -290.0
             u1 = 21.7
             u2 = -20.3
@@ -268,6 +268,15 @@ module LambdaParameters
             u2 = 886.3526892734478
             u3 = 0.0
             u3p = 4.912041998187181
+            y0 = 0.0
+            y3 = 0.0
+		elseif ParamType=="NaN"
+			γ = 0.0
+            u0 = 0.0
+            u1 = 0.0
+            u2 = 0.0
+            u3 = 0.0
+            u3p = 0.0
             y0 = 0.0
             y3 = 0.0
         end
