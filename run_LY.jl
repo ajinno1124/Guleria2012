@@ -7,19 +7,29 @@ function run_LY()
         [14,13],
         [23,27],
         [39,49],
-        [52,81],
+        [57,81],
         [82,125]
     ]
 
     for i=eachindex(ZN)
         AN=AtomNum(ZN[i][1],ZN[i][2],0)
-        println("Z=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
-        OutPutFiles(AN,NParamType="SK3",LParamType="NaN")
+        println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
+		if ZN[i][1]==57
+			OutPutFiles(AN,NParamType="SK3",LParamType="NaN",α=0.1)
+		else
+        	OutPutFiles(AN,NParamType="SK3",LParamType="NaN")
+		end
+
 
         AN=AtomNum(ZN[i][1],ZN[i][2],1)
         println("Z=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
-        OutPutFiles(AN,NParamType="SK3",LParamType="LY1")
+		if ZN[i][1]==57
+			OutPutFiles(AN,NParamType="SK3",LParamType="LY1",α=0.1)
+		else
+        	OutPutFiles(AN,NParamType="SK3",LParamType="LY1")
+		end
     end
+
 end
 
 run_LY()
