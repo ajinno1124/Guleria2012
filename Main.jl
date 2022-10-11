@@ -661,7 +661,7 @@ function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType="HPL1",α=0
 
 end
 
-############################################3
+############################################
 # out put files
 function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType="HPL1", α=0.5)
     Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50,α=α)
@@ -921,7 +921,7 @@ function Energy_Pair()
     return Ep
 end
 
-function Energy_CM_dir(τ3)
+function Energy_CM_dir(AN,τ3)
 	rmesh=getrmesh()
     Ecm_dir=0.0
     Z=AN.Z
@@ -1076,6 +1076,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
+    LParamType="NaN"
     WriteHeader(io1,AN,NParamType,LParamType)
 
     aN=NuclParameters.getaN(NParamType)
@@ -1097,7 +1098,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,AN.Z)
 	Ec_exch=Energy_coul_exch(ρ3[1,:])
 	Epair=Energy_Pair()
-	Ecm_dir=Energy_CM_dir(τ3)
+	Ecm_dir=Energy_CM_dir(AN,τ3)
 	Ecm_exch=Energy_CM_exch()
 	Etot = En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch
 
