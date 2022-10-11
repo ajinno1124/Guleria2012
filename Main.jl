@@ -681,6 +681,7 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType="HPL1", α=0.5)
 		WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	end
     cd("../..")
+	print("\n")
 end
 
 function WriteHeader(io::IOStream,AN,NParamType,LParamType)
@@ -944,10 +945,11 @@ function Energy_N_Kin(AN,τ3)
 	rmesh=getrmesh()
 	Z=AN.Z
 	N=AN.N
+	Λ=AN.Λ
 	for b in 1:2
 		QN=QuantumNumber(0.5,0,b)
 		mass=getmass(QN)
-		E_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N)))*τ3[b,:] )*4*π
+		E_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:] )*4*π
 	end
 	return E_Kin
 end
@@ -957,10 +959,11 @@ function Energy_L_Kin(AN,τ3)
 	rmesh=getrmesh()
 	Z=AN.Z
 	N=AN.N
+	Λ=AN.Λ
 	b=3
 	QN=QuantumNumber(0.5,0,b)
 	mass=getmass(QN)
-	E_L_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N)))*τ3[b,:] )*4*π
+	E_L_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:] )*4*π
 
 	return E_L_Kin
 end
@@ -977,7 +980,7 @@ function Energy_N_R(aN,σ,ρ3,ρN)
 	return En_R
 end
 
-function Energy_L_R(aL,γ,ρN,ρ3)
+function Energy_L_R(aL,γ,ρ3,ρN)
 	Hl_R=zeros(Float64,Nmesh)
 	rmesh=getrmesh()
 	@. Hl_R += aL[4]*ρN[:]^(γ+1)*ρ3[3,:]
@@ -999,7 +1002,7 @@ end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     io1=open("Energy.csv","w")
-	write(io1,"Elcheck = e_Lam - (e_Lam using Rearrangement Energy)")
+	write(io1,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
 	WriteHeader(io1,AN,NParamType,LParamType)
     rmesh=getrmesh()
     Z=AN.Z
@@ -1021,13 +1024,12 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),E_Kin(MeV),E_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
+	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),En_Kin(MeV),En_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
 
     for i=eachindex(Ansocc[3])
 		#calculate the density assuming the i-th state is filled with 1/(2*j+1) Λ particles each.
-		if i>1
-			Ansocc[3][i-1]=0.0
-		end
+
+		Ansocc[3]=zeros(Float64,length(Ansocc[3]))
 		Ansocc[3][i]=1/(2*AnsStates[3][i].QN.j+1)
 
 		ρ3[3,:]=Calc_ρ(Ansocc[3],AnsStates[3],rmesh)
@@ -1041,10 +1043,12 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
 		E_L_Kin=Energy_L_Kin(AN,τ3)
 		E_N_SPS=Energy_N_SPS(Ansocc,AnsStates)
 		En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
-		El_R=Energy_L_R(aL,pL.γ,ρN,ρ3)
+		El_R=Energy_L_R(aL,pL.γ,ρ3,ρN)
 		Epair=Energy_Pair()
-		Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
+		#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
+		Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][i].E)-El_R)
 		EL_check=AnsStates[3][i].E-(0.5*(E_L_Kin+AnsStates[3][i].E)-El_R)
+
 
 		write(io1,"$(AnsStates[3][i].QN.j)")
 		write(io1,",$(AnsStates[3][i].QN.l)")
@@ -1059,16 +1063,45 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
 
     end
 
-	# Return Ansocc to the original state
-	for i=eachindex(Ansocc[3])
-		if i==1
-			Ansocc[3][i]=1/(2*AnsStates[3][i].QN.j+1)
-		else
-			Ansocc[3][i]=0.0
-		end
-	end
-
 	close(io1)
+
+	#check Energy of Lambda
+	io2=open("check_Energy_Lam.csv","w")
+	write(io2,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
+	write(io2,"#Etot1=Single Particle Energy\n")
+	write(io2,"#Etot2=0.5*(E_kin + E_Total_SPS) - El_R)\n\n")
+	write(io2,"jLam,lLam,Etot1,Etot2,El_Kin(MeV),El_R(MeV)\n")
+
+	for i=eachindex(Ansocc[3])
+		#calculate the density assuming the i-th state is filled with 1/(2*j+1) Λ particles each.
+		Ansocc[3]=zeros(Float64,length(Ansocc[3]))
+		Ansocc[3][i]=1/(2*AnsStates[3][i].QN.j+1)
+
+		ρ3[3,:]=Calc_ρ(Ansocc[3],AnsStates[3],rmesh)
+        dρ3[3,:]=Calc_dρ(ρ3[3,:],rmesh)
+        Lapρ3[3,:]=Calc_Lapρ(ρ3[3,:],rmesh)
+        τ3[3,:]=Calc_τ(Ansocc[3],AnsStates[3],rmesh)
+        J3[3,:]=Calc_J(Ansocc[3],AnsStates[3],rmesh)
+        divJ3[3,:]=Calc_divJ(J3[3,:],rmesh)
+
+		E_N_Kin=Energy_N_Kin(AN,τ3)
+		E_L_Kin=Energy_L_Kin(AN,τ3)
+		E_N_SPS=Energy_N_SPS(Ansocc,AnsStates)
+		En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
+		El_R=Energy_L_R(aL,pL.γ,ρ3,ρN)
+		Epair=Energy_Pair()
+		El_tot=0.5*(E_L_Kin+AnsStates[3][i].E)-El_R
+		EL_check=AnsStates[3][i].E-(0.5*(E_L_Kin+AnsStates[3][i].E)-El_R)
+
+		write(io2,"$(AnsStates[3][i].QN.j)")
+		write(io2,",$(AnsStates[3][i].QN.l)")
+		write(io2,",$(AnsStates[3][i].E)")
+		write(io2,",$(El_tot)")
+		write(io2,",$(E_L_Kin)")
+		write(io2,",$(El_R)\n")
+
+    end
+
 end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
