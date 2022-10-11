@@ -1021,7 +1021,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-	write(io1,"jLam, lLam, E/A(MeV), Etot(MeV), E_Kin(MeV), E_SPS(MeV), En_R(MeV), El_R(MeV), Epair(MeV), El_Check(MeV)\n")
+	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),E_Kin(MeV),E_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
 
     for i=eachindex(Ansocc[3])
 		#calculate the density assuming the i-th state is filled with 1/(2*j+1) Λ particles each.
@@ -1090,7 +1090,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-	write(io1,"E/A(MeV), Etot(MeV), 	EN(MeV),	 Ec_dir(MeV),	 Ec_exch(MeV),	 Epair(MeV), 	Ecm_dir(MeV),	 Ecm_exch(MeV)\n")
+	write(io1,"E/A(MeV),Etot(MeV),EN(MeV),Ec_dir(MeV),Ec_exch(MeV),Epair(MeV),Ecm_dir(MeV),Ecm_exch(MeV)\n")
 
 	#directory integrate energy density functional
 	En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
@@ -1120,7 +1120,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
 	Etot2=0.5*(E_Kin+E_SPS)- En_R + Epair
 
-	write(io2, "Etot2/A(MeV), Etot2(MeV), EKin(MeV), ESPS(MeV), ER(MeV), Epair(MeV), $(Ecm_dir)\n")
+	write(io2, "Etot2/A(MeV),Etot2(MeV),EKin(MeV),ESPS(MeV),ER(MeV),Epair(MeV),Ecm_dir(MeV)\n")
 	write(io2,"$(Etot2/(AN.N+AN.Z))")
 	write(io2,",$(Etot2)")
 	write(io2,",$(E_Kin)")
