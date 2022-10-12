@@ -15,11 +15,11 @@ plt.rcParams['text.usetex'] = True
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
-d1_pot=pd.read_csv('../data/Z8N8L1_SLy4HPL2/potential.csv',comment='#')
-d2_pot=pd.read_csv('../data/Z20N20L1_SLy4HPL2/potential.csv',comment='#')
-d3_pot=pd.read_csv('../data/Z39N50L1_SLy4HPL2/potential.csv',comment='#')
-d4_pot=pd.read_csv('../data/Z57N82L1_SLy4HPL2/potential.csv',comment='#')
-d5_pot=pd.read_csv('../data/Z82N126L1_SLy4HPL2/potential.csv',comment='#')
+d1_pot=pd.read_csv('../data/SLy4HPL2/data/Z8N7L1_SLy4HPL2/potential.csv',comment='#')
+d2_pot=pd.read_csv('../data/SLy4HPL2/data/Z20N19L1_SLy4HPL2/potential.csv',comment='#')
+d3_pot=pd.read_csv('../data/SLy4HPL2/data/Z39N49L1_SLy4HPL2/potential.csv',comment='#')
+d4_pot=pd.read_csv('../data/SLy4HPL2/data/Z57N81L1_SLy4HPL2/potential.csv',comment='#')
+d5_pot=pd.read_csv('../data/SLy4HPL2/data/Z82N125L1_SLy4HPL2/potential.csv',comment='#')
 
 #print(d1_pot.head)
 
@@ -28,11 +28,11 @@ fig=plt.figure()
 subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
 ax = subplot(1,1,1)
 
-ax.plot(d1_pot["r(fm)"],d1_pot["Vll(MeV)"],label=r"$^{17}_\Lambda$O",linewidth=2,color="r")
-ax.plot(d2_pot["r(fm)"],d2_pot["Vll(MeV)"],label=r"$^{41}_\Lambda$Ca",linewidth=2,color="darkgreen")
-ax.plot(d3_pot["r(fm)"],d3_pot["Vll(MeV)"],label=r"$^{90}_\Lambda$Y",linewidth=2,color="m")
-ax.plot(d4_pot["r(fm)"],d4_pot["Vll(MeV)"],label=r"$^{140}_\Lambda$La",linewidth=2,color="b")
-ax.plot(d5_pot["r(fm)"],d5_pot["Vll(MeV)"],label=r"$^{209}_\Lambda$Pb",linewidth=2,color="k")
+ax.plot(d1_pot["r(fm)"],d1_pot["Vll(MeV)"],label=r"$^{16}_\Lambda$O",linewidth=2,color="r")
+ax.plot(d2_pot["r(fm)"],d2_pot["Vll(MeV)"],label=r"$^{40}_\Lambda$Ca",linewidth=2,color="darkgreen")
+ax.plot(d3_pot["r(fm)"],d3_pot["Vll(MeV)"],label=r"$^{89}_\Lambda$Y",linewidth=2,color="m")
+ax.plot(d4_pot["r(fm)"],d4_pot["Vll(MeV)"],label=r"$^{139}_\Lambda$La",linewidth=2,color="b")
+ax.plot(d5_pot["r(fm)"],d5_pot["Vll(MeV)"],label=r"$^{208}_\Lambda$Pb",linewidth=2,color="k")
 
 ax.text(1,-4,r'SLy4',{'color':'k','fontsize':14})
 ax.text(1,-7,r'HP$\Lambda$2',{'color':'k','fontsize':14})
@@ -43,7 +43,7 @@ ax.set_ylim(-35,0)
 #plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
 ax.set_ylabel('$V_\Lambda $ (MeV)',fontsize=16)
 ax.set_xlabel(r'$r$ (fm)',fontsize=16)
-ax.tick_params(axis='x', which='both', direction='in',labelsize=14)
+ax.tick_params(axis='x', which='both',top='true',bottom='true', direction='in',labelsize=14)
 ax.tick_params(axis='y', which='both',left='true',right='true', direction='in',labelsize=14)
 #plt.tight_layout()
 

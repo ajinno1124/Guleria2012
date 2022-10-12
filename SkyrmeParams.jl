@@ -80,17 +80,18 @@ module NuclParameters
             x3=1.0
             σ=1.0
             W0=120.0
-        elseif ParamType=="VB1"
-            t0=-1057.3
-            t1=235.9
-            t2=-100.0
-            t3=14463.5
-            x0=0.56
-            x1=0.00
-            x2=0.00
-            x3=0.00
-            σ=1
-            W0=120.0
+		# exchange coulomb energyを含まないので、別で取り扱う
+        #elseif ParamType=="VB1"
+        #    t0=-1057.3
+        #    t1=235.9
+        #    t2=-100.0
+        #    t3=14463.5
+        #    x0=0.56
+        #    x1=0.00
+        #    x2=0.00
+        #    x3=0.00
+        #    σ=1
+        #    W0=120.0
         elseif ParamType=="SKS3"
             t0=-2014.7
             t1=361.0
@@ -130,10 +131,10 @@ module NuclParameters
         aN[9]=-1/16*(p.t1*p.x1+p.t2*p.x2)
         aN[10]=1/16*(p.t1-p.t2)
 
-        if ParamType=="VB1"
-            aN[3]=p.t3/8
-            aN[4]=-aN[3]
-        end
+        #if ParamType=="VB1"
+        #    aN[3]=p.t3/8
+        #    aN[4]=-aN[3]
+        #end
 
         return aN
     end
