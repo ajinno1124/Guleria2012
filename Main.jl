@@ -439,28 +439,28 @@ function Calc_h2mΛ(AN::AtomNum,aL,ρN::Vector{Float64})
     return @. ħc^2/(2*mΛMeV)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ))+aL[2]*ρN[:]
 end
 
-function Calc_VΛΛ(aL,γ,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},ρp::Vector{Float64},ρn::Vector{Float64})
-    return @. aL[1]*ρN+aL[2]*τN-aL[3]*LapρN+aL[4]*ρN^(γ+1)+aL[5]*(ρN^2+2*ρp*ρn)
+function Calc_VΛΛ(aL,γ1,γ2,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},ρp::Vector{Float64},ρn::Vector{Float64})
+    return @. aL[1]*ρN+aL[2]*τN-aL[3]*LapρN+aL[4]*ρN^(γ1+1)+aL[5]*ρN^(γ2+1)+aL[6]*(ρN^2+2*ρp*ρn)
 end
 
 # Guleria Ver.
-function Calc_VΛΛ_G(aL,γ,ρN::Vector{Float64},ddρN,LapρN::Vector{Float64},τN::Vector{Float64},dτΛ::Vector{Float64})
+function Calc_VΛΛ_G(aL,γ1,ρN::Vector{Float64},ddρN,LapρN::Vector{Float64},τN::Vector{Float64},dτΛ::Vector{Float64})
 	#return @. aL[1]*ρN+aL[2]*(ρN*dτΛ+τN)+aL[3]*ddρN+aL[4]*ρN^(γ+1)
 	#return @. aL[1]*ρN+aL[2]*(ρN*dτΛ+τN)-aL[3]*LapρN+aL[4]*ρN^(γ+1)
-    return @. aL[1]*ρN+aL[2]*(ρN*dτΛ+τN)+aL[3]*(-LapρN+2*ddρN)+aL[4]*ρN^(γ+1)
+    return @. aL[1]*ρN+aL[2]*(ρN*dτΛ+τN)+aL[3]*(-LapρN+2*ddρN)+aL[4]*ρN^(γ1+1)
     #return @. aL[1]*ρN+aL[2]*(ρN*dτΛ+τN)-aL[3]*LapρN+aL[4]*ρN^(γ+1)
 	#return @. aL[1]*ρN+aL[2]*τN+aL[3]*ddρN+aL[4]*ρN^(γ+1)
 end
 
-function Calc_VΛN(aL,γ,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
-    return @. aL[1]*ρΛ+aL[2]*τΛ-aL[3]*LapρΛ+(γ+1)*aL[4]*(ρN^γ)*ρΛ+2*aL[5]*ρΛ*(ρN+ρq)
+function Calc_VΛN(aL,γ1,γ2,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
+    return @. aL[1]*ρΛ+aL[2]*τΛ-aL[3]*LapρΛ+(γ1+1)*aL[4]*(ρN^γ1)*ρΛ+(γ2+1)*aL[5]*(ρN^γ2)*ρΛ+2*aL[6]*ρΛ*(ρN+ρq)
 end
 
 # Guleria Ver.
-function Calc_VΛN_G(aL,γ,ρΛ,ddρΛ,τΛ,dτN,LapρΛ,ρN)
+function Calc_VΛN_G(aL,γ1,ρΛ,ddρΛ,τΛ,dτN,LapρΛ,ρN)
 	#return @. aL[1]*ρΛ+aL[2]*(τΛ+dτN*ρΛ)+aL[3]*ddρΛ+(γ+1)*aL[4]*(ρN^γ)*ρΛ
 	#return @. aL[1]*ρΛ+aL[2]*(τΛ+dτN*ρΛ)-aL[3]*LapρΛ+(γ+1)*aL[4]*(ρN^γ)*ρΛ
-    return @. aL[1]*ρΛ+aL[2]*(τΛ+dτN*ρΛ)+aL[3]*(-LapρΛ+2*ddρΛ)+(γ+1)*aL[4]*(ρN^γ)*ρΛ
+    return @. aL[1]*ρΛ+aL[2]*(τΛ+dτN*ρΛ)+aL[3]*(-LapρΛ+2*ddρΛ)+(γ1+1)*aL[4]*(ρN^γ1)*ρΛ
     #return @. aL[1]*ρΛ+aL[2]*(τΛ+dτN*ρΛ)-aL[3]*LapρΛ+(γ+1)*aL[4]*(ρN^γ)*ρΛ
 	#return @. aL[1]*ρΛ+aL[2]*τΛ+aL[3]*ddρΛ+(γ+1)*aL[4]*(ρN^γ)*ρΛ
 end
@@ -556,14 +556,14 @@ function Calc_Coef(ρ3,τ3,J3,aN,aL,pN,pΛ,AN::AtomNum)
 
     # Guleria
 	if isGuleria==1
-		VΛΛ=Calc_VΛΛ_G(aL,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
-		VΛp=Calc_VΛN_G(aL,pΛ.γ,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
+		VΛΛ=Calc_VΛΛ_G(aL,pΛ.γ1,ρN,ddρN,LapρN,τN,dτ3[3,:])
+		VΛp=Calc_VΛN_G(aL,pΛ.γ1,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
 		VΛn=VΛp
 	else
 		# Rayet
-		VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-		VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-		VΛn=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+		VΛΛ=Calc_VΛΛ(aL, pΛ.γ1, pΛ.γ2, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+		VΛp=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+		VΛn=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
 	end
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
@@ -792,9 +792,9 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
 		VΛn=VΛp
 	else
 		# Rayet
-		VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-		VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-		VΛn=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+		VΛΛ=Calc_VΛΛ(aL, pΛ.γ1, pΛ.γ2, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+		VΛp=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+		VΛn=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
 	end
     #VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
     #VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
@@ -877,20 +877,21 @@ function Energy_N(aN,σ,W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
     return En
 end
 
-function Hamiltonian_L(aL,γ,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+function Hamiltonian_L(aL,γ1,γ2,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
     Hl=zeros(Float64,Nmesh)
     @. Hl += ħc^2/(2*mΛMeV)*τ3[3,:]
     @. Hl += aL[1]*ρN[:]*ρ3[3,:]
     @. Hl += aL[2]*(τ3[3,:]*ρN[:] + τN*ρ3[3,:])
     @. Hl -= aL[3]*(ρ3[3,:]*LapρN[:])
-    @. Hl += aL[4]*ρN[:]^(γ+1)*ρ3[3,:]
-    @. Hl += aL[5]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
+    @. Hl += aL[4]*ρN[:]^(γ1+1)*ρ3[3,:]
+	@. Hl += aL[5]*ρN[:]^(γ2+1)*ρ3[3,:]
+    @. Hl += aL[6]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
     return Hl
 end
 
-function Energy_L(aL,γ,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+function Energy_L(aL,γ1,γ2,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
 	rmesh=getrmesh()
-    Hl=Hamiltonian_L(aL,γ,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+    Hl=Hamiltonian_L(aL,γ1,γ2,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
     En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hl[:]))*4*π
     return En
 end
@@ -991,12 +992,13 @@ function Energy_N_R(aN,σ,ρ3,ρN)
 	return En_R
 end
 
-function Energy_L_R(aL,γ,ρ3,ρN)
+function Energy_L_R(aL,γ1,γ2,ρ3,ρN)
 	Hl_R=zeros(Float64,Nmesh)
 	rmesh=getrmesh()
-	@. Hl_R += aL[4]*ρN[:]^(γ+1)*ρ3[3,:]
-    @. Hl_R += aL[5]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
-	El_R=0.5*γ*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hl_R[:])*4*π
+	@. Hl_R += γ1*aL[4]*ρN[:]^(γ1+1)*ρ3[3,:]
+	@. Hl_R += γ2*aL[5]*ρN[:]^(γ2+1)*ρ3[3,:]
+    @. Hl_R += aL[6]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
+	El_R=0.5*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hl_R[:])*4*π
 	return El_R
 end
 
@@ -1039,11 +1041,11 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
 	E_L_Kin=Energy_L_Kin(AN,τ3)
 	E_N_SPS=Energy_N_SPS(Ansocc,AnsStates)
 	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
-	El_R=Energy_L_R(aL,pL.γ,ρ3,ρN)
+	El_R=Energy_L_R(aL,pL.γ1,pL.γ2,ρ3,ρN)
 	Epair=Energy_Pair()
 	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
 	Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
-	El_check=0.0
+	El_check=AnsStates[3][1].E- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
 
 	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),En_Kin(MeV),En_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
 

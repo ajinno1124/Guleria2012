@@ -103,15 +103,6 @@ module NuclParameters
             x3=-0.904
             σ=0.2604
             W0=94
-        elseif ParamType=="NaN"
-            γ = 0.0
-            u0 = 0.0
-            u1 = 0.0
-            u2 = 0.0
-            u3 = 0.0
-            u3p = 0.0
-            y0 = 0.0
-            y3 = 0.0
         end
 
         return NuclParams(t0,t1,t2,t3,x0,x1,x2,x3,σ,W0)
@@ -143,150 +134,189 @@ end
 
 module LambdaParameters
     mutable struct LambdaParams
-        γ::Float64
+        γ1::Float64
+		γ2::Float64
         u0::Float64
         u1::Float64
         u2::Float64
         u3::Float64
-        u3p::Float64
+        u31::Float64
+		u32::Float64
         y0::Float64
-        y3::Float64
+        y31::Float64
+		y32::Float64
     end
 
     function getParams(ParamType::String)
+		γ1,γ2,u0,u1,u2,u3,u31,u32,y0,y31,y32=[0,0,0,0,0,0,0,0,0,0,0]
         if ParamType=="HPL1"
-            γ = 1
+            γ1 = 1
             u0 = -326.395
             u1 = 72.627
             u2 = -8.584
             u3 = 0.0
-            u3p = 1746.041
+            u31 = 1746.041
             y0 = -0.223
-            y3 = -0.389
+            y31 = -0.389
         elseif ParamType=="HPL2"
-            γ = 1
+            γ1 = 1
             u0 = -399.946
             u1 = 83.426
             u2 = 11.455
             u3 = 0.0
-            u3p = 2046.818
+            u31 = 2046.818
             y0 = -0.486
-            y3 = -0.660
+            y31 = -0.660
         elseif ParamType=="HPL3"
-            γ =  1/3
+            γ1 =  1/3
             u0 = -498.515
             u1 = 65.203
             u2 = 19.001
             u3 = 0.0
-            u3p = 995.832
+            u31 = 995.832
             y0 = -0.492
-            y3 = -0.444
+            y31 = -0.444
         elseif ParamType=="HPL4"
-            γ = 1/3
+            γ1 = 1/3
             u0 = -475.584
             u1 = 99.058
             u2 = -20.890
             u3 = 0.0
-            u3p = 1375.172
+            u31 = 1375.172
             y0 = -0.350
-            y3 = -0.724
+            y31 = -0.724
         elseif ParamType=="NL1"
-            γ = 1
+            γ1 = 1
             u0 = -253.3250
             u1 = 147.1264
             u2 = -83.5843
             u3 = 0.0
-            u3p = 1684.9876
+            u31 = 1684.9876
             y0 = 0.5802
-            y3 = 0.4831
+            y31 = 0.4831
         elseif ParamType=="OL1"
-            γ = 1
+            γ1 = 1
             u0 = -236.5835
             u1 = 116.8704
             u2 = -112.8812
             u3 = 0.0
-            u3p = 1453.3493
+            u31 = 1453.3493
             y0 = 0.1271
-            y3 = -0.3110
+            y31 = -0.3110
         elseif ParamType=="NL2"
-            γ = 1/3
+            γ1 = 1/3
             u0 = -518.620
             u1 = 82.0944
             u2 = -19.9772
             u3 = 0.0
-            u3p = 1190.1894
+            u31 = 1190.1894
             y0 = -0.1392
-            y3 = 0.3126
+            y31 = 0.3126
         elseif ParamType=="OL2"
-            γ = 1/3
+            γ1 = 1/3
             u0 = -417.7593
             u1 = 1.5460
             u2 = -3.2617
             u3 = 0.0
-            u3p = 1102.2221
+            u31 = 1102.2221
             y0 = -0.3854
-            y3 = -0.5645
+            y31 = -0.5645
         elseif ParamType=="SKSH1"
-            γ = 1.0
+            γ1 = 1.0
             u0 = -176.5
             u1 = -35.8
             u2 = 44.1
             u3 = 0.0
-            u3p = 0.0
+            u31 = 0.0
             y0 = 0.0
-            y3 = 0.0
+            y31 = 0.0
         elseif ParamType=="SKSH2"
-            γ = 1.0
+            γ1 = 1.0
             u0 = -290.0
             u1 = 21.7
             u2 = -20.3
             u3 = 1850
-            u3p = 0.0
+            u31 = 0.0
             y0 = 0.0
-            y3 = 0.0
+            y31 = 0.0
 		elseif ParamType=="LY1"
-			γ = 1.0/3.0
+			γ1 = 1.0/3.0
             u0 = -476.0
             u1 = 42.0
             u2 = 23.0
             u3 = 0.0
-            u3p = 1514.1
+            u31 = 1514.1
             y0 = -0.0452
-            y3 = -0.280
+            y31 = -0.280
         elseif ParamType=="GKW2"
-            γ = 1/3
-            u0 = -968.125
-            u1 = -125.44938856118907
-            u2 = -376.34816568356723
-            u3 = 0.0
-            u3p = 4371.717378386592
-            y0 = 0.0
-            y3 = 0.0
-        elseif ParamType=="GKW3"
-            γ = 1/3
-            u0 = -500.62499999999994
-            u1 = 295.4508964244826
-            u2 = 886.3526892734478
-            u3 = 0.0
-            u3p = 4.912041998187181
-            y0 = 0.0
-            y3 = 0.0
-		elseif ParamType=="NaN"
-			γ = 0.0
-            u0 = 0.0
+            γ1 = 1/3
+			γ2 = 2/3
+            u0 = -154.9
             u1 = 0.0
             u2 = 0.0
             u3 = 0.0
-            u3p = 0.0
+            u31 = 614.7727563
+			u32 = -1210.177854
             y0 = 0.0
-            y3 = 0.0
+            y31 = 0.0
+			y32 = 0.0
+        elseif ParamType=="GKW3"
+            γ1 = 1/3
+			γ2 = 2/3
+            u0 = -80.1
+            u1 = 0.0
+            u2 = 0.0
+            u3 = 0.0
+            u31 = 0.690755906
+			u32 = 2850.138497
+            y0 = 0.0
+            y31 = 0.0
+			y32 = 0.0
+		elseif ParamType=="GKW2+MD1"
+			γ1 = 1/3
+			γ2 = 2/3
+            u0 = -100.7640807
+            u1 = 5.36078443
+            u2 = 16.08235329
+            u3 = 0.0
+            u31 = -395.5298972
+			u32 = 4227.884993
+            y0 = 0.0
+            y31 = 0.0
+			y32 = 0.0
+		elseif ParamType=="GKW3+MD2"
+			γ1 = 1/3
+			γ2 = 2/3
+            u0 = -89.36057348
+            u1 = 5.97294433
+            u2 = 17.91883299
+            u3 = 0.0
+            u31 = -481.5710093
+			u32 = 5427.908804
+            y0 = 0.0
+            y31 = 0.0
+			y32 = 0.0
+		elseif ParamType=="GKW3+MD2"
+			γ1 = 1/3
+			γ2 = 2/3
+            u0 = -174.9314587
+            u1 = 6.798681835
+            u2 = 20.3960455
+            u3 = 0.0
+            u31 = -382.5782741
+			u32 = 4884.323089
+            y0 = 0.0
+            y31 = 0.0
+			y32 = 0.0
+		elseif ParamType=="NaN"
+			# all parameters are 0
         end
 
-        return LambdaParams(γ,u0,u1,u2,u3,u3p,y0,y3)
+        return LambdaParams(γ1,γ2,u0,u1,u2,u3,u31,u32,y0,y31,y32)
     end
 
     function getaL(ParamType::String)
-        aL=zeros(Float64,5)
+        aL=zeros(Float64,6)
         p=getParams(ParamType)
         aL[1]=p.u0*(1+0.5*p.y0)
         aL[2]=0.25*(p.u1+p.u2)
@@ -294,8 +324,9 @@ module LambdaParameters
         #if ParamType=="SKSH1" || ParamType=="SKSH2"
         #    aL[3]=0.25*(3*p.u1-p.u2)
         #end
-        aL[4]=3.0/8.0*p.u3p*(1+0.5*p.y3)
-        aL[5]=0.25*p.u3
+        aL[4]=3.0/8.0*p.u31*(1+0.5*p.y31)
+		aL[5]=3.0/8.0*p.u32*(1+0.5*p.y32)
+        aL[6]=0.25*p.u3
 
         return aL
     end
