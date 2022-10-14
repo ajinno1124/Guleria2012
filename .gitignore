@@ -24,8 +24,10 @@ docs/site/
 Manifest.toml
 
 *.ipynb_checkpoints
-./Hoge.ipynb
+/Hoge.ipynb
 /my/
 /data/
 *.pdf
 *.png
+
+Hoge*
