@@ -14,8 +14,8 @@ using DelimitedFiles
     ħc=197.3269804
     ρ0=0.16
 
-    ρ_cutoff=3.0
-    k_cutoff=2.5
+    ρ_cutoff=1.0
+    k_cutoff=2.0
 end
 
 
