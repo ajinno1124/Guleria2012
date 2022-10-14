@@ -7,7 +7,7 @@ function run(NParamType,LParamType)
         [14,13],
         [23,27],
         [39,49],
-        #[57,81],
+        [57,81],
         [82,125]
     ]
 

@@ -25,7 +25,8 @@ end
 
 # fit Mom dependence by U = const + a2*k^2
 function Func_fitmom(k,p::Vector{Float64})
-	return (@. p[1]+p[2]*k[:]^2)
+	ρ0=ρ0_Kohno
+	return (@. p[1]+p[2]*k[:]^2*ρ0)
 end
 
 function Fit_Mom(dataname)
@@ -104,11 +105,11 @@ end
 function getaL2(ParamType::String)
 	C,aL2=[0.0,0.0]
 	if ParamType=="MD1_2.5"
-		C,aL2=[-29.098371987741686, 5.360784429556326]
+		C,aL2=[-29.098371987745747, 32.293882105765896]
 	elseif ParamType=="MD2_2.5"
-		C,aL2=[-28.278161390790633, 5.97294433002585]
+		C,aL2=[-28.278161390800726, 35.9815923495766]
 	elseif ParamType=="MD3_1.0"
-		C,aL2=[-29.95328507758762, 6.79868183475533]
+		C,aL2=[-29.95328507758867, 40.95591466722299]
 	end
 
 	return C,aL2
