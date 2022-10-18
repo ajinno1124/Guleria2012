@@ -19,10 +19,11 @@ using DelimitedFiles
     ρ0_Kohno=0.166
 	ρ0_GKW=0.16
 
-    ρ_cutoff=3.0
-	k_cutoff=2.5
+    ρ_cutoff=1.5
+	k_cutoff=1.0
 end
 
+#=
 # fit Mom dependence by U = const + a2*k^2
 function Func_fitmom(k,p::Vector{Float64})
 	ρ0=ρ0_Kohno
@@ -52,7 +53,7 @@ function Fit_Mom(dataname)
     plot!()
 
 end
-
+=#
 # fit Mom. dependence (U(p)-U(p=0)) by Um= a2*k^2
 function Func_fitmom2(k,p)
 	ρ0=ρ0_Kohno
@@ -71,7 +72,6 @@ function Fit_Mom2(dataname)
 
     p0=[0.0]
 	fit=curve_fit(Func_fitmom2, xdata, ydata, p0)
-	print(fit)
 
     println("\ndegree of freedom = $(dof(fit))") #degrees of freedom
     println("aΛ2 = $(coef(fit))") #best fit parameters
@@ -112,6 +112,7 @@ function FitVΛΛ_PNM(ρN,aL1,aL2,aL4,aL5)
     return VΛΛ(0.0,ρN,aL1,aL2,aL4,aL5)
 end
 
+#=
 function get_aL1_SNM(C,aL2,aL4,aL5)
 	ρ0=ρ0_Kohno
 	ρp=ρ0/2.0
@@ -135,40 +136,39 @@ function get_aL1_PNM(C,aL2,aL4,aL5)
 	aL1/=ρN - aL2*τN - aL4*ρN^(4/3) - aL5*ρN^(5/3)
 	return aL1
 end
+=#
 
 function getaL2(ParamType::String)
-	C,aL2=[0.0,0.0]
-	if ParamType=="MD1_2.5"
-		C,aL2=[-29.098371987745747, 32.293882105765896]
-	elseif ParamType=="MD2_2.5"
-		C,aL2=[-28.278161390800726, 35.9815923495766]
-	elseif ParamType=="MD3_1.0"
-		C,aL2=[-29.95328507758867, 40.95591466722299]
+	aL2=0.0
+	if ParamType=="Kohno2_1.0"
+		aL2=40.84151607273452
+	elseif ParamType=="Kohno3_1.0"
+		aL2=53.53651324877708
 	end
 
-	return C,aL2
+	return aL2
 
 end
 
-function Fit_Dense(dataname;isSNM=false,isPNM=false,ParamType::String)
+function Fit_Dense2(dataname;isSNM=false,isPNM=false,ParamType::String)
 	ρ0=ρ0_GKW
-	C,aL2=getaL2(ParamType)
+	aL2=getaL2(ParamType)
 	data,header=readdlm(dataname,',',header=true)
     df=DataFrame(data, vec(header))
     xdata=ρ0*df[df.density.<ρ_cutoff,:].density
     ydata=df[df.density.<ρ_cutoff,:].U
 
-    p0=[0.0,0.0]
+    p0=[0.0,0.0,0.0]
     if isSNM==true
-		Func(ρN::Vector{Float64},p)=FitVΛΛ_SNM(ρN,get_aL1_SNM(C,aL2,p[1],p[2]),aL2,p[1],p[2])
+		Func(ρN::Vector{Float64},p)=FitVΛΛ_SNM(ρN,p[1],aL2,p[2],p[3])
         fit=curve_fit(Func, xdata, ydata, p0)
     elseif isPNM==true
-		Func(ρN,p)=FitVΛΛ_PNM(ρN,get_aL1_PNM(C,aL2,p[1],p[2]),aL2,p[1],p[2])
+		Func(ρN,p)=FitVΛΛ_PNM(ρN,p[1],aL2,p[2],p[3])
         fit=curve_fit(Func, xdata, ydata, p0)
     end
 
     println("\ndegree of freedom = $(dof(fit))") #degrees of freedom
-    println("aΛ4, aΛ5 = $(coef(fit))") #best fit parameters
+    println("aΛ1, aΛ4, aΛ5 = $(coef(fit))") #best fit parameters
     #println("residual = $(fit.resid)") #residuals = vector of residuals
 	#println("jacobian = $(fit.jacobian)") #estimated Jacobian at solution
 
@@ -177,13 +177,11 @@ function Fit_Dense(dataname;isSNM=false,isPNM=false,ParamType::String)
     plot!(df.density, df.U, label="all data")
     umesh=0:0.1:5
     if isSNM==true
-		aL1=get_aL1_SNM(C,aL2,coef(fit)[1],coef(fit)[2])
-		println("aΛ1, aΛ2, aΛ4, aΛ5 = [$(aL1), $(aL2), $(coef(fit)[1]), $(coef(fit)[2])]")
-        plot!(umesh,FitVΛΛ_SNM(umesh*ρ0,aL1,aL2,coef(fit)[1],coef(fit)[2]),label="fit")
+		println("aΛ1, aΛ2, aΛ4, aΛ5 = [$(coef(fit)[1]), $(aL2), $(coef(fit)[2]), $(coef(fit)[3])]")
+        plot!(umesh,FitVΛΛ_SNM(umesh*ρ0,coef(fit)[1],aL2,coef(fit)[2],coef(fit)[3]),label="fit")
     elseif isPNM==true
-        aL1=get_aL1_PNM(C,aL2,coef(fit)[1],coef(fit)[2])
-		println("aΛ1, aΛ2, aΛ4, aΛ5 = [$(aL1), $(aL2), $(coef(fit)[1]), $(coef(fit)[2])]")
-        plot!(umesh,FitVΛΛ_PNM(umesh*̢ρ0,aL1,aL2,coef(fit)[1],coef(fit)[2]),label="fit")
+		println("aΛ1, aΛ2, aΛ4, aΛ5 = [$(coef(fit)[1]), $(aL2), $(coef(fit)[2]), $(coef(fit)[3])]")
+        plot!(umesh,FitVΛΛ_PNM(umesh*̢ρ0,coef(fit)[1],aL2,coef(fit)[2],coef(fit)[3]),label="fit")
     end
-    plot!()
+    plot!(xlim=(0,2),ylim=(-40,0))
 end

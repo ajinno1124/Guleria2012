@@ -8,17 +8,24 @@ import pylab as pl
 from pylab import *
 import cmath
 
+isMD=True
+
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
-d1_dense=pd.read_csv('../data/Potential_GKW2/DensityDep_GKW2.csv')
-d2_dense=pd.read_csv('../data/Potential_GKW3/DensityDep_GKW3.csv')
-d3_dense=pd.read_csv('../data/Potential_GKW2+MD1/DensityDep_GKW2+MD1.csv')
-d4_dense=pd.read_csv('../data/Potential_GKW3+MD2/DensityDep_GKW3+MD2.csv')
-d5_dense=pd.read_csv('../data/Potential_GKW3+MD3/DensityDep_GKW3+MD3.csv')
+#d1_dense=pd.read_csv('../data/Potential_GKW2/DensityDep_GKW2.csv')
+#d2_dense=pd.read_csv('../data/Potential_GKW3/DensityDep_GKW3.csv')
+#d3_dense=pd.read_csv('../data/Potential_GKW2+MD1/DensityDep_GKW2+MD1.csv')
+#d4_dense=pd.read_csv('../data/Potential_GKW3+MD2/DensityDep_GKW3+MD2.csv')
+#d5_dense=pd.read_csv('../data/Potential_GKW3+MD3/DensityDep_GKW3+MD3.csv')
 d6_dense=pd.read_csv('../data/Potential_HPL2/DensityDep_HPL2.csv')
 d7_dense=pd.read_csv('../data/Potential_LY1/DensityDep_LY1.csv')
+
+d8_dense=pd.read_csv('../data/Potential_GKW2_1.5/DensityDep_GKW2_1.5.csv')
+d9_dense=pd.read_csv('../data/Potential_GKW3_1.5/DensityDep_GKW3_1.5.csv')
+d10_dense=pd.read_csv('../data/Potential_GKW2_1.5+Kohno2/DensityDep_GKW2_1.5+Kohno2.csv')
+d11_dense=pd.read_csv('../data/Potential_GKW3_1.5+Kohno3/DensityDep_GKW3_1.5+Kohno3.csv')
 
 
 fig=plt.figure()
@@ -33,13 +40,21 @@ df4=pd.read_csv('../Fitting Parameters/Givendata/SNM3BF_upper.csv')
 ax.fill(np.append(df1["density"],df2["density"][::-1]),np.append(df1["U"],df2["U"][::-1]),label="GKW2",color=(0,0,0,0.08),edgecolor='black')
 ax.fill(np.append(df3["density"],df4["density"][::-1]),np.append(df3["U"],df4["U"][::-1]),label="GKW3",color=(1,0,0,0.08),edgecolor='black')
 
-ax.plot(d1_dense["density"],d1_dense["U"],label="GKW2 Fit",linewidth=1.9,color='tab:brown',linestyle=':')
-ax.plot(d2_dense["density"],d2_dense["U"],label="GKW3 Fit",linewidth=2.2,color='red',linestyle='-')
+#ax.plot(d1_dense["density"],d1_dense["U"],label="GKW2 Fit",linewidth=1.9,color='tab:brown',linestyle=':')
+#ax.plot(d2_dense["density"],d2_dense["U"],label="GKW3 Fit",linewidth=2.2,color='red',linestyle='-')
 #ax.plot(d3_dense["density"],d3_dense["U"],label="GKW2+MD1",linewidth=1.5,color='darkorange',linestyle='-.')
 #ax.plot(d4_dense["density"],d4_dense["U"],label="GKW3+MD2",linewidth=2.2,color='m',linestyle='--')
 #ax.plot(d5_dense["density"],d5_dense["U"],label="GKW3+MD3",linewidth=2.7,color='darkgreen',linestyle=':')
 ax.plot(d6_dense["density"],d6_dense["U"],label="HPL2",linewidth=2.7,color='tab:cyan',linestyle=':')
 ax.plot(d7_dense["density"],d7_dense["U"],label="LY1",linewidth=2.7,color='k',linestyle=':')
+
+if isMD==False:
+	ax.plot(d8_dense["density"],d8_dense["U"],label="GKW2 $u<1.5$ Fit",linewidth=1.9,color='tab:brown',linestyle=':')
+	ax.plot(d9_dense["density"],d9_dense["U"],label="GKW3 $u<1.5$ Fit",linewidth=1,color='red',linestyle='-')
+elif isMD==True:
+	ax.plot(d10_dense["density"],d10_dense["U"],label="GKW2 $u<1.5$ + Kohno2 $k<1$/fm",linewidth=1.5,color='darkorange',linestyle='-.')
+	ax.plot(d11_dense["density"],d11_dense["U"],label="GKW3 $u<1.5$ + Kohno3 $k<1$/fm",linewidth=2.2,color='m',linestyle='--')
+
 
 #df=pd.read_csv('SNM_mom_k=0.csv')
 #xdata=df[df.density<3.5].density
@@ -82,8 +97,12 @@ ax.tick_params(labelsize=12)
 
 #plt.savefig("v2ch.eps",format='eps',dpi=1000)
 #plt.savefig("pxe895qmdmsv.eps",format='eps',bbox__inches='tight')
-plt.savefig("DensityDependence.pdf",dpi=300)
-plt.savefig("DensityDependence.png",dpi=300)
+if isMD==False:
+	plt.savefig("DensityDependence.pdf",dpi=300)
+	plt.savefig("DensityDependence.png",dpi=300)
+elif isMD==True:
+	plt.savefig("DensityDependenceMD.pdf",dpi=300)
+	plt.savefig("DensityDependenceMD.png",dpi=300)
 #plt.savefig("timeevolv1.png")
 plt.show()
 

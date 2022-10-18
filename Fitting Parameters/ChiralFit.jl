@@ -14,7 +14,7 @@ using DelimitedFiles
     ħc=197.3269804
     ρ0=0.16
 
-    ρ_cutoff=1.0
+    ρ_cutoff=1.5
     k_cutoff=2.0
 end
 
@@ -28,12 +28,13 @@ function getτq(ρq)
     return 3.0/5.0*kfq^2*ρq
 end
 
-function VΛΛ(ρp,ρn,aΛ1,aΛ2,aΛ4)
-    γ=1/3
+function VΛΛ(ρp,ρn,aΛ1,aΛ4,aΛ5)
+    γ1=1/3
+	γ2=2/3
     ρN=ρp+ρn
     τN=getτq.(ρp)+getτq.(ρn)
 
-    return @. aΛ1*ρN+aΛ2*τN+aΛ4*ρN^(γ+1)
+    return @. aΛ1*ρN+aΛ4*ρN^(γ1+1)+aΛ5*ρN^(γ2+1)
 end
 
 function FitVΛΛ_SNM(ρN,params::Vector{Float64})
@@ -58,7 +59,7 @@ function FittingMain(dataname;isSNM=false,isPNM=false)
     end
 
     println("\ndegree of freedom = $(dof(fit))") #degrees of freedom
-    println("aΛ1,aΛ2,aΛ4 = $(coef(fit))") #best fit parameters
+    println("aΛ1,aΛ4,aΛ5 = $(coef(fit))") #best fit parameters
     #println("residual = $(fit.resid)") #residuals = vector of residuals
 	#println("jacobian = $(fit.jacobian)") #estimated Jacobian at solution
 
@@ -71,9 +72,9 @@ function FittingMain(dataname;isSNM=false,isPNM=false)
     elseif isPNM==true
         plot!(ρmesh,FitVΛΛ_PNM(ρmesh*ρ0,coef(fit)),label="fit")
     end
-    plot!()
+    plot!(xlim=(0,2),ylim=(-40,0))
 end
-
+#=
 ###########################################3
 # Calc LParams, from ,a, b, c
 
@@ -113,3 +114,4 @@ function ComparePot()
     plot!()
 
 end
+=#

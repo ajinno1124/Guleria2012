@@ -1,6 +1,8 @@
 include("Main.jl")
 
-function run(NParamType,LParamType)
+function run_LY()
+	NParamType="SK3"
+	LParamType="LY1_a3zero"
     ZN=[
         [6,5],
         [8,7],
@@ -15,7 +17,7 @@ function run(NParamType,LParamType)
         AN=AtomNum(ZN[i][1],ZN[i][2],0)
         println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 		if ZN[i][1]==57
-			OutPutFiles(AN,NParamType=NParamType,LParamType="NaN",α=0.05)
+			OutPutFiles(AN,NParamType=NParamType,LParamType="NaN",α=0.1)
 		else
         	OutPutFiles(AN,NParamType=NParamType,LParamType="NaN")
 		end
@@ -32,9 +34,4 @@ function run(NParamType,LParamType)
 
 end
 
-run("SK3","LY1")
-run("SLy4","HPL2")
-run("SLy4","GKW2_1.5")
-run("SLy4","GKW3_1.5")
-run("SLy4","GKW2_1.5+Kohno2")
-run("SLy4","GKW3_1.5+Kohno3")
+run_LY()
