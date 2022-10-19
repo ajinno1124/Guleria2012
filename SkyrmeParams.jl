@@ -133,7 +133,7 @@ end
 
 
 module LambdaParameters
-    using XLSX
+    using CSV
     using DataFrames
 
     mutable struct LambdaParams
@@ -386,7 +386,7 @@ module LambdaParameters
         if ParamType==-1
             return LambdaParams(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
         else
-            df=DataFrame(XLSX.readtable("Lambda Parameters.xlsx","Lambda Parameters"))
+            df=DataFrame(CSV.File("Lambda Parameters.csv"))
             γ1=df[ParamType,"Gamma1"]
             γ2=df[ParamType,"Gamma2"]
             γ3=df[ParamType,"Gamma3"]
@@ -404,7 +404,7 @@ module LambdaParameters
             y32=df[ParamType,"y32"]
             y33=df[ParamType,"y33"]
             y34=df[ParamType,"y34"]
-            println(LambdaParams(γ1,γ2,γ3,γ4,u0,u1,u2,u3,u31,u32,u33,u34,y0,y31,y32,y33,y34))
+            #println(LambdaParams(γ1,γ2,γ3,γ4,u0,u1,u2,u3,u31,u32,u33,u34,y0,y31,y32,y33,y34))
             return LambdaParams(γ1,γ2,γ3,γ4,u0,u1,u2,u3,u31,u32,u33,u34,y0,y31,y32,y33,y34)
         end
     end

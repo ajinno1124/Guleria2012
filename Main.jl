@@ -5,7 +5,7 @@ using LinearAlgebra
 using .NuclParameters
 using .LambdaParameters
 using .MyLib
-import XLSX
+using CSV
 using DataFrames
 
 @consts begin
@@ -675,20 +675,23 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType, α=0.5)
     if LParamType==-1
         LParamType_str="NaN"
     else
-        df=DataFrame(XLSX.readtable("Lambda Parameters.xlsx","Lambda Parameters"))
+        df=DataFrame(CSV.File("Lambda Parameters.csv"))
         LParamType_str=df[LParamType,"Parameter Name"]
-        println(LParamType_str)
     end
-    
+
+	aN=NuclParameters.getaN(NParamType)
+    aL=LambdaParameters.getaL(LParamType)
+    pN=NuclParameters.getParams(NParamType)
+    pL=LambdaParameters.getParams(LParamType)
 
     rm("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)",force=true,recursive=true)
     mkpath("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     cd("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
     WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	if Λ==1
-        WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+        WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	elseif Λ==0
 		WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	end
@@ -778,7 +781,7 @@ function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
 
 end
 
-function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
     io1=open("density.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
@@ -793,24 +796,20 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-    aN=NuclParameters.getaN(NParamType)
-    aL=LambdaParameters.getaL(LParamType)
-    pN=NuclParameters.getParams(NParamType)
-    pΛ=LambdaParameters.getParams(LParamType)
 	# Guleria
 	if isGuleria==1
-		VΛΛ=Calc_VΛΛ_G(aL,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
-		VΛp=Calc_VΛN_G(aL,pΛ.γ,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
+		VΛΛ=Calc_VΛΛ_G(aL,pL.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
+		VΛp=Calc_VΛN_G(aL,pL.γ,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
 		VΛn=VΛp
 	else
 		# Rayet
-		VΛΛ=Calc_VΛΛ(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-		VΛp=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-		VΛn=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+		VΛΛ=Calc_VΛΛ(aL, pL.γ1, pL.γ2, pL.γ3, pL.γ4, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+		VΛp=Calc_VΛN(aL, pL.γ1, pL.γ2, pL.γ3, pL.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+		VΛn=Calc_VΛN(aL, pL.γ1, pL.γ2, pL.γ3, pL.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
 	end
-    #VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-    #VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-    #VΛn=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+    #VΛΛ=Calc_VΛΛ(aL, pL.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+    #VΛp=Calc_VΛN(aL, pL.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+    #VΛn=Calc_VΛN(aL, pL.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
@@ -1029,7 +1028,7 @@ function Energy_N_SPS(Ansocc,AnsStates)
 	return E
 end
 
-function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
     io1=open("Energy.csv","w")
 	write(io1,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
 	WriteHeader(io1,AN,NParamType,LParamType_str)
@@ -1038,11 +1037,6 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
     N=AN.N
     Λ=AN.Λ
     WriteHeader(io1,AN,NParamType,LParamType)
-
-    aN=NuclParameters.getaN(NParamType)
-    aL=LambdaParameters.getaL(LParamType)
-    pN=NuclParameters.getParams(NParamType)
-    pL=LambdaParameters.getParams(LParamType)
 
     ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
     ρN=ρ3[1,:]+ρ3[2,:]
