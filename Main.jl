@@ -5,6 +5,8 @@ using LinearAlgebra
 using .NuclParameters
 using .LambdaParameters
 using .MyLib
+import XLSX
+using DataFrames
 
 @consts begin
     # Prog. Theor. Exp. Phys. 2022, 083C01 (2022)
@@ -439,8 +441,8 @@ function Calc_h2mΛ(AN::AtomNum,aL,ρN::Vector{Float64})
     return @. ħc^2/(2*mΛMeV)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ))+aL[2]*ρN[:]
 end
 
-function Calc_VΛΛ(aL,γ1,γ2,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},ρp::Vector{Float64},ρn::Vector{Float64})
-    return @. aL[1]*ρN+aL[2]*τN-aL[3]*LapρN+aL[4]*ρN^(γ1+1)+aL[5]*ρN^(γ2+1)+aL[6]*(ρN^2+2*ρp*ρn)
+function Calc_VΛΛ(aL,γ1,γ2,γ3,γ4,ρN::Vector{Float64},LapρN::Vector{Float64},τN::Vector{Float64},ρp::Vector{Float64},ρn::Vector{Float64})
+    return @. aL[1]*ρN+aL[2]*τN-aL[3]*LapρN+aL[4]*ρN^(γ1+1)+aL[5]*ρN^(γ2+1)+aL[6]*ρN^(γ3+1)+aL[7]*ρN^(γ4+1)+aL[8]*(ρN^2+2*ρp*ρn)
 end
 
 # Guleria Ver.
@@ -452,8 +454,8 @@ function Calc_VΛΛ_G(aL,γ1,ρN::Vector{Float64},ddρN,LapρN::Vector{Float64},
 	#return @. aL[1]*ρN+aL[2]*τN+aL[3]*ddρN+aL[4]*ρN^(γ+1)
 end
 
-function Calc_VΛN(aL,γ1,γ2,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
-    return @. aL[1]*ρΛ+aL[2]*τΛ-aL[3]*LapρΛ+(γ1+1)*aL[4]*(ρN^γ1)*ρΛ+(γ2+1)*aL[5]*(ρN^γ2)*ρΛ+2*aL[6]*ρΛ*(ρN+ρq)
+function Calc_VΛN(aL,γ1,γ2,γ3,γ4,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
+    return @. aL[1]*ρΛ+aL[2]*τΛ-aL[3]*LapρΛ+(γ1+1)*aL[4]*(ρN^γ1)*ρΛ+(γ2+1)*aL[5]*(ρN^γ2)*ρΛ+(γ2+1)*aL[6]*(ρN^γ3)*ρΛ+(γ3+1)*aL[7]*(ρN^γ4)*ρΛ+2*aL[8]*ρΛ*(ρN+ρq)
 end
 
 # Guleria Ver.
@@ -561,9 +563,9 @@ function Calc_Coef(ρ3,τ3,J3,aN,aL,pN,pΛ,AN::AtomNum)
 		VΛn=VΛp
 	else
 		# Rayet
-		VΛΛ=Calc_VΛΛ(aL, pΛ.γ1, pΛ.γ2, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-		VΛp=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-		VΛn=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+		VΛΛ=Calc_VΛΛ(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+		VΛp=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+		VΛn=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
 	end
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
@@ -613,7 +615,7 @@ function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
 
 end
 
-function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType="HPL1",α=0.5)
+function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType,α=0.5)
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
     rmesh=getrmesh()
@@ -663,20 +665,30 @@ end
 
 ############################################
 # out put files
-function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType="HPL1", α=0.5)
+function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType, α=0.5)
     Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50,α=α)
 
     Z=AN.Z
     N=AN.N
     Λ=AN.Λ
-    rm("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType)",force=true,recursive=true)
-    mkpath("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType)")
-    cd("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType)")
-    WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType)
-    WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType)
-    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
+
+    if LParamType==-1
+        LParamType_str="NaN"
+    else
+        df=DataFrame(XLSX.readtable("Lambda Parameters.xlsx","Lambda Parameters"))
+        LParamType_str=df[LParamType,"Parameter Name"]
+        println(LParamType_str)
+    end
+    
+
+    rm("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)",force=true,recursive=true)
+    mkpath("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
+    cd("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
+    WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+    WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
 	if Λ==1
-        WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
+        WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
 	elseif Λ==0
 		WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	end
@@ -684,13 +696,13 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType="HPL1", α=0.5)
 	print("\n")
 end
 
-function WriteHeader(io::IOStream,AN,NParamType,LParamType)
+function WriteHeader(io::IOStream,AN,NParamType,LParamType_str)
 	rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
     Λ=AN.Λ
     write(io, "# Nuclear Parameter=$(NParamType)\n")
-    write(io, "# Lambda Parameter=$(LParamType)\n")
+    write(io, "# Lambda Parameter=$(LParamType_str)\n")
     write(io, "# Z=$(Z), N=$(N), Λ=$(Λ)\n")
     write(io, "# Number of mesh=$(Nmesh)\n")
     write(io, "# rmax=$(rmax)\n")
@@ -709,11 +721,11 @@ function WriteHeader(io::IOStream,AN,NParamType)
     write(io, "# Matching point of shooting = $(rmesh[Nmatch])\n\n")
 end
 
-function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
+function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
     io=open("states.csv","w")
 
     rmesh=getrmesh()
-    WriteHeader(io,AN,NParamType,LParamType)
+    WriteHeader(io,AN,NParamType,LParamType_str)
     write(io, "Baryon Type, occ, j, l, Energy(MeV)\n")
 
     for b=1:3
@@ -733,9 +745,9 @@ function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType)
     close(io)
 end
 
-function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType)
+function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
     io=open("wavefunc.csv","w")
-	WriteHeader(io,AN,NParamType,LParamType)
+	WriteHeader(io,AN,NParamType,LParamType_str)
 	rmesh=getrmesh()
 
     write(io, "r(fm)")
@@ -766,11 +778,11 @@ function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType)
 
 end
 
-function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
+function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
     io1=open("density.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
-    WriteHeader(io1,AN,NParamType,LParamType)
+    WriteHeader(io1,AN,NParamType,LParamType_str)
 
     ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
     ρN=ρ3[1,:]+ρ3[2,:]
@@ -792,9 +804,9 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType)
 		VΛn=VΛp
 	else
 		# Rayet
-		VΛΛ=Calc_VΛΛ(aL, pΛ.γ1, pΛ.γ2, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-		VΛp=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-		VΛn=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+		VΛΛ=Calc_VΛΛ(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+		VΛp=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+		VΛn=Calc_VΛN(aL, pΛ.γ1, pΛ.γ2, pΛ.γ3, pΛ.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
 	end
     #VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
     #VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
@@ -877,7 +889,7 @@ function Energy_N(aN,σ,W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
     return En
 end
 
-function Hamiltonian_L(aL,γ1,γ2,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+function Hamiltonian_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
     Hl=zeros(Float64,Nmesh)
     @. Hl += ħc^2/(2*mΛMeV)*τ3[3,:]
     @. Hl += aL[1]*ρN[:]*ρ3[3,:]
@@ -885,13 +897,15 @@ function Hamiltonian_L(aL,γ1,γ2,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
     @. Hl -= aL[3]*(ρ3[3,:]*LapρN[:])
     @. Hl += aL[4]*ρN[:]^(γ1+1)*ρ3[3,:]
 	@. Hl += aL[5]*ρN[:]^(γ2+1)*ρ3[3,:]
-    @. Hl += aL[6]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
+    @. Hl += aL[6]*ρN[:]^(γ3+1)*ρ3[3,:]
+    @. Hl += aL[7]*ρN[:]^(γ4+1)*ρ3[3,:]
+    @. Hl += aL[8]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
     return Hl
 end
 
-function Energy_L(aL,γ1,γ2,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+function Energy_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
 	rmesh=getrmesh()
-    Hl=Hamiltonian_L(aL,γ1,γ2,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+    Hl=Hamiltonian_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
     En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hl[:]))*4*π
     return En
 end
@@ -992,12 +1006,14 @@ function Energy_N_R(aN,σ,ρ3,ρN)
 	return En_R
 end
 
-function Energy_L_R(aL,γ1,γ2,ρ3,ρN)
+function Energy_L_R(aL,γ1,γ2,γ3,γ4,ρ3,ρN)
 	Hl_R=zeros(Float64,Nmesh)
 	rmesh=getrmesh()
 	@. Hl_R += γ1*aL[4]*ρN[:]^(γ1+1)*ρ3[3,:]
 	@. Hl_R += γ2*aL[5]*ρN[:]^(γ2+1)*ρ3[3,:]
-    @. Hl_R += aL[6]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
+    @. Hl_R += γ3*aL[6]*ρN[:]^(γ3+1)*ρ3[3,:]
+    @. Hl_R += γ4*aL[7]*ρN[:]^(γ4+1)*ρ3[3,:]
+    @. Hl_R += aL[8]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
 	El_R=0.5*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hl_R[:])*4*π
 	return El_R
 end
@@ -1013,10 +1029,10 @@ function Energy_N_SPS(Ansocc,AnsStates)
 	return E
 end
 
-function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
+function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
     io1=open("Energy.csv","w")
 	write(io1,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
-	WriteHeader(io1,AN,NParamType,LParamType)
+	WriteHeader(io1,AN,NParamType,LParamType_str)
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
@@ -1041,7 +1057,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType)
 	E_L_Kin=Energy_L_Kin(AN,τ3)
 	E_N_SPS=Energy_N_SPS(Ansocc,AnsStates)
 	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
-	El_R=Energy_L_R(aL,pL.γ1,pL.γ2,ρ3,ρN)
+	El_R=Energy_L_R(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN)
 	Epair=Energy_Pair()
 	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
 	Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)

@@ -15,18 +15,18 @@ function run_LY()
         AN=AtomNum(ZN[i][1],ZN[i][2],0)
         println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 		if ZN[i][1]==57
-			OutPutFiles(AN,NParamType="SK3",LParamType="NaN",α=0.1)
+			OutPutFiles(AN,NParamType="SK3",LParamType=-1,α=0.1)
 		else
-        	OutPutFiles(AN,NParamType="SK3",LParamType="NaN")
+        	OutPutFiles(AN,NParamType="SK3",LParamType=-1)
 		end
 
 
         AN=AtomNum(ZN[i][1],ZN[i][2],1)
         println("Z=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 		if ZN[i][1]==57
-			OutPutFiles(AN,NParamType="SK3",LParamType="LY1",α=0.1)
+			OutPutFiles(AN,NParamType="SK3",LParamType=9,α=0.1)
 		else
-        	OutPutFiles(AN,NParamType="SK3",LParamType="LY1")
+        	OutPutFiles(AN,NParamType="SK3",LParamType=9)
 		end
     end
 

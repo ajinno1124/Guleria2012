@@ -133,22 +133,33 @@ end
 
 
 module LambdaParameters
+    using XLSX
+    using DataFrames
+
     mutable struct LambdaParams
         γ1::Float64
 		γ2::Float64
+        γ3::Float64
+        γ4::Float64
         u0::Float64
         u1::Float64
         u2::Float64
         u3::Float64
         u31::Float64
 		u32::Float64
+        u33::Float64
+        u34::Float64
         y0::Float64
         y31::Float64
 		y32::Float64
+        y33::Float64
+        y34::Float64
     end
 
-    function getParams(ParamType::String)
+    function getParams(ParamType::Int)
+        #=
 		γ1,γ2,u0,u1,u2,u3,u31,u32,y0,y31,y32=[0,0,0,0,0,0,0,0,0,0,0]
+        
         if ParamType=="HPL1"
             γ1 = 1
             u0 = -326.395
@@ -370,12 +381,36 @@ module LambdaParameters
 		else
 			println("$(ParamType) is not defined!")
         end
+    =#
 
-        return LambdaParams(γ1,γ2,u0,u1,u2,u3,u31,u32,y0,y31,y32)
+        if ParamType==-1
+            return LambdaParams(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+        else
+            df=DataFrame(XLSX.readtable("Lambda Parameters.xlsx","Lambda Parameters"))
+            γ1=df[ParamType,"Gamma1"]
+            γ2=df[ParamType,"Gamma2"]
+            γ3=df[ParamType,"Gamma3"]
+            γ4=df[ParamType,"Gamma4"]
+            u0=df[ParamType,"u0"]
+            u1=df[ParamType,"u1"]
+            u2=df[ParamType,"u2"]
+            u3=df[ParamType,"u3"]
+            u31=df[ParamType,"u31"]
+            u32=df[ParamType,"u32"]
+            u33=df[ParamType,"u33"]
+            u34=df[ParamType,"u34"]
+            y0=df[ParamType,"y0"]
+            y31=df[ParamType,"y31"]
+            y32=df[ParamType,"y32"]
+            y33=df[ParamType,"y33"]
+            y34=df[ParamType,"y34"]
+            println(LambdaParams(γ1,γ2,γ3,γ4,u0,u1,u2,u3,u31,u32,u33,u34,y0,y31,y32,y33,y34))
+            return LambdaParams(γ1,γ2,γ3,γ4,u0,u1,u2,u3,u31,u32,u33,u34,y0,y31,y32,y33,y34)
+        end
     end
 
-    function getaL(ParamType::String)
-        aL=zeros(Float64,6)
+    function getaL(ParamType::Int)
+        aL=zeros(Float64,8)
         p=getParams(ParamType)
         aL[1]=p.u0*(1+0.5*p.y0)
         aL[2]=0.25*(p.u1+p.u2)
@@ -385,7 +420,9 @@ module LambdaParameters
         #end
         aL[4]=3.0/8.0*p.u31*(1+0.5*p.y31)
 		aL[5]=3.0/8.0*p.u32*(1+0.5*p.y32)
-        aL[6]=0.25*p.u3
+        aL[6]=3.0/8.0*p.u33*(1+0.5*p.y33)
+        aL[7]=3.0/8.0*p.u34*(1+0.5*p.y34)
+        aL[8]=0.25*p.u3
 
         return aL
     end
