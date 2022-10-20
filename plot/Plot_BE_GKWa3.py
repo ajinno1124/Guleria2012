@@ -61,7 +61,7 @@ BindingEnergyL("SLy4","GKW3_medium(rho1.5)_a3L60")
 
 #plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['text.usetex'] = True
+plt.rcParams['text.usetex'] = False
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
@@ -72,7 +72,7 @@ ax = subplot(1,1,1)
 df_data=pd.read_csv("LamBindingEnergy.csv")
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='o',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10)
 
-def Plot_OnePot(LParamType,color,linestyle,linewidth):
+def Plot_OnePot(LParamType,color,fmt,linewidth):
 	df=pd.read_csv(f'BindingEnergy{LParamType}.csv',comment='#')
 	d0=df[df["lLam"]==0]
 	d1=df[df["lLam"]==1]
@@ -82,16 +82,16 @@ def Plot_OnePot(LParamType,color,linestyle,linewidth):
 	d5=df[df["lLam"]==5]
 	#print(d1_pot.head)
 
-	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],label=f"{LParamType}",c=color,ls=linestyle,lw=linewidth)
-	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
-	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
-	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
-	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
-	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
+	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],fmt,label=f"{LParamType}",c=color,lw=linewidth)
+	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth)
+	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth)
+	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth)
+	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth)
+	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth)
 
-Plot_OnePot("GKW3_medium(rho1.5)",'r','-',1)
-Plot_OnePot("GKW3_medium(rho1.5)_a3L30",'g','--',1)
-Plot_OnePot("GKW3_medium(rho1.5)_a3L60",'b','-.',1)
+Plot_OnePot("GKW3_medium(rho1.5)",'r','o-',1)
+Plot_OnePot("GKW3_medium(rho1.5)_a3L30",'g','s-',1)
+Plot_OnePot("GKW3_medium(rho1.5)_a3L60",'b','^-.',1)
 #Plot_OnePot("GKW3_medium(rho1.5)_a3L90",'m',':',1)
 
 
@@ -99,7 +99,7 @@ Plot_OnePot("GKW3_medium(rho1.5)_a3L60",'b','-.',1)
 #ax.text(0.1,28,r'SK3',{'color':'k','fontsize':14})
 #ax.text(0.1,26,r'LY1',{'color':'k','fontsize':14})
 
-ax.set_xlim(0,0.25)
+ax.set_xlim(0,0.3)
 ax.set_ylim(0,30)
 ax.legend(loc='upper right',frameon=0,numpoints=1,fontsize=10)
 #ax.legend(loc='lower left',frameon=0,numpoints=1,fontsize=14)

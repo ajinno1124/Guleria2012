@@ -23,7 +23,7 @@ function run(NParamType,LParamType)
 
     for i=eachindex(ZN)
 		if LParamType==-1
-        	AN=AtomNum(ZN[i][1],ZN[i][2],0)
+			AN=AtomNum(ZN[i][1],ZN[i][2],0)
 		else
 			AN=AtomNum(ZN[i][1],ZN[i][2],1)
 		end

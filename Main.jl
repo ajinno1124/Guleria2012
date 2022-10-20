@@ -482,8 +482,7 @@ function Calc_Vcoul(ρp::Vector{Float64},rmesh,Z)
     @. Vcoul[2:Nmesh]=Vcoul[2:Nmesh]/rmesh[2:Nmesh]
     Vcoul[1]=InterPolEvenFunc0(Vcoul[2],Vcoul[3],Vcoul[4])
     @. Vcoul[:]+=-(3*ρp[:]/π)^(1/3)
-    #Vcoul*=e2MeVfm/2 #Chabanat
-    Vcoul*=e2MeVfm #Reainhard
+    Vcoul*=e2MeVfm
 
     return Vcoul
 
@@ -1055,7 +1054,9 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 	Epair=Energy_Pair()
 	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
 	Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
-	El_check=AnsStates[3][1].E- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+	#El_check=AnsStates[3][1].E- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+    El=Energy_L(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+    El_check=El- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
 
 	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),En_Kin(MeV),En_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
 
