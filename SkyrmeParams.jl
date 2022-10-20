@@ -159,7 +159,7 @@ module LambdaParameters
     function getParams(ParamType::Int)
         #=
 		γ1,γ2,u0,u1,u2,u3,u31,u32,y0,y31,y32=[0,0,0,0,0,0,0,0,0,0,0]
-        
+
         if ParamType=="HPL1"
             γ1 = 1
             u0 = -326.395

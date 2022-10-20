@@ -10,29 +10,39 @@ import cmath
 
 # create BindingEnergyLY.csv
 def BindingEnergyL(NParamType,LParamType):
-	AN=np.array([
-		[6,5],
-		[8,7],
-		[14,13],
-		[23,27],
-		[39,49],
-		[57,81],
-		[82,125]
+	ZN=np.array([
+		[2,5],
+		[3,5],
+		[4,5],
+		[5,4],
+		[5,5],
+		[5,6],
+        [6,5],
+		[6,8],
+		[7,8],
+        [8,7],
+        [14,13],
+		[16,15],
+		[20,19],
+        [23,27],
+        [39,49],
+        [57,81],
+        [82,125]
 	])
 
 	f=open(f'BindingEnergy{LParamType}.csv','w',encoding="utf-8")
 	f.write('#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n')
 	f.write('A,Z,N,jLam,lLam,B.E Lambda(MeV),EL_check(MeV)\n')
 
-	for i in range(len(AN)):
-		df1=pd.read_csv(f"../data/Z{AN[i][0]}N{AN[i][1]}L0_{NParamType}NaN/Energy2.csv",comment="#")
-		df2=pd.read_csv(f"../data/Z{AN[i][0]}N{AN[i][1]}L1_{NParamType}{LParamType}/Energy.csv",comment="#")
+	for i in range(len(ZN)):
+		df1=pd.read_csv(f"../data/Z{ZN[i][0]}N{ZN[i][1]}L0_{NParamType}NaN/Energy2.csv",comment="#")
+		df2=pd.read_csv(f"../data/Z{ZN[i][0]}N{ZN[i][1]}L1_{NParamType}{LParamType}/Energy.csv",comment="#")
 		l=0
 		for n in range(len(df2)):
 			if df2["lLam"][n]==l:
-				f.write(f'{AN[i][0]+AN[i][1]}')
-				f.write(f',{AN[i][0]}')
-				f.write(f',{AN[i][1]}')
+				f.write(f'{ZN[i][0]+ZN[i][1]}')
+				f.write(f',{ZN[i][0]}')
+				f.write(f',{ZN[i][1]}')
 				f.write(f',{df2["jLam"][n]}')
 				f.write(f',{df2["lLam"][n]}')
 				f.write(f',{-df2["Etot(MeV)"][n]+df1["Etot2(MeV)"][0]}')
@@ -41,8 +51,10 @@ def BindingEnergyL(NParamType,LParamType):
 
 	f.close()
 
-BindingEnergyL("SK3","LY1")
-BindingEnergyL("SK3","LY1_a3zero")
+BindingEnergyL("SLy4","GKW3_medium(rho1.5)")
+BindingEnergyL("SLy4","GKW3_medium(rho1.5)_a3L30")
+BindingEnergyL("SLy4","GKW3_medium(rho1.5)_a3L60")
+#BindingEnergyL("SLy4","GKW3_medium(rho1.5)_a3L90")
 
 ################################################3
 # main plot process
@@ -60,7 +72,7 @@ ax = subplot(1,1,1)
 df_data=pd.read_csv("LamBindingEnergy.csv")
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='o',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10)
 
-def Plot_OnePot(LParamType,color,linestyle):
+def Plot_OnePot(LParamType,color,linestyle,linewidth):
 	df=pd.read_csv(f'BindingEnergy{LParamType}.csv',comment='#')
 	d0=df[df["lLam"]==0]
 	d1=df[df["lLam"]==1]
@@ -70,23 +82,29 @@ def Plot_OnePot(LParamType,color,linestyle):
 	d5=df[df["lLam"]==5]
 	#print(d1_pot.head)
 
-	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],label=f"{LParamType}",c=color,ls=linestyle)
-	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],c=color,ls=linestyle)
+	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],label=f"{LParamType}",c=color,ls=linestyle,lw=linewidth)
+	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
+	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
+	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
+	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
+	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],c=color,ls=linestyle,lw=linewidth)
 
-Plot_OnePot("LY1",'b','-')
-Plot_OnePot("LY1_a3zero",'r','--')
+Plot_OnePot("GKW3_medium(rho1.5)",'r','-',1)
+Plot_OnePot("GKW3_medium(rho1.5)_a3L30",'g','--',1)
+Plot_OnePot("GKW3_medium(rho1.5)_a3L60",'b','-.',1)
+#Plot_OnePot("GKW3_medium(rho1.5)_a3L90",'m',':',1)
+
 
 
 #ax.text(0.1,28,r'SK3',{'color':'k','fontsize':14})
 #ax.text(0.1,26,r'LY1',{'color':'k','fontsize':14})
 
-ax.legend(loc='upper right',frameon=0,numpoints=1,fontsize=14)
-ax.set_xlim(0.0,0.25)
-ax.set_ylim(-10,30)
+ax.set_xlim(0,0.25)
+ax.set_ylim(0,30)
+ax.legend(loc='upper right',frameon=0,numpoints=1,fontsize=10)
+#ax.legend(loc='lower left',frameon=0,numpoints=1,fontsize=14)
+#ax.set_xlim(0.20,0.25)
+#ax.set_ylim(11.0,13.5)
 #plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
 ax.set_ylabel('$B_\Lambda $ (MeV)',fontsize=16)
 ax.set_xlabel(r'$A^{-2/3}$',fontsize=16)
@@ -98,8 +116,8 @@ ax.tick_params(axis='y', which='both',left='true',right='true', direction='in',l
 #ax.set_yticks([-50,0,50,100,200,300])
 #ax.tick_params(labelsize=12)
 
-plt.savefig("BElam_LY_a3zero.pdf",dpi=300)
-plt.savefig("BElam_LY_a3zero.png",dpi=300)
+plt.savefig("BElam_GKW3a.pdf",dpi=300)
+plt.savefig("BElam_GKW3a.png",dpi=300)
 plt.show()
 
 #指定可能なファイル形式は emf, eps, jpeg, jpg, pdf, png, ps, raw, rgba, svg,
