@@ -51,8 +51,10 @@ def BindingEnergyL(NParamType,LParamType):
 
 	f.close()
 
-BindingEnergyL("SLy4","GKW3_medium(rho1.5)")
-BindingEnergyL("SLy4","GKW3_medium(rho1.5)_a3L30")
+BindingEnergyL("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.0)")
+BindingEnergyL("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.0)_a3L30")
+BindingEnergyL("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.0)_a3L60")
+BindingEnergyL("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.0)_a3L90")
 BindingEnergyL("SLy4","GKW3_medium(rho1.5)_a3L60")
 #BindingEnergyL("SLy4","GKW3_medium(rho1.5)_a3L90")
 
@@ -86,10 +88,11 @@ def Plot_OnePot(LParamType,color,fmt,linewidth):
 	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
 	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
 
-Plot_OnePot("GKW3_medium(rho1.5)",'r','o-',0.7)
-Plot_OnePot("GKW3_medium(rho1.5)_a3L30",'g','s-',0.7)
-Plot_OnePot("GKW3_medium(rho1.5)_a3L60",'b','^-.',0.7)
-#Plot_OnePot("GKW3_medium(rho1.5)_a3L90",'m',':',0.7)
+Plot_OnePot("GKW3_medium(rho1.5)+Kohno3(k1.0)",'darkorange','o-',0.7)
+Plot_OnePot("GKW3_medium(rho1.5)+Kohno3(k1.0)_a3L30",'m','s-',0.7)
+#Plot_OnePot("GKW3_medium(rho1.5)+Kohno3(k1.0)_a3L60",'b','^-.',0.7)
+#Plot_OnePot("GKW3_medium(rho1.5)+Kohno3(k1.0)_a3L90",'m',':',0.7)
+Plot_OnePot("GKW3_medium(rho1.5)_a3L60",'b','^-',0.7)
 
 df_data=pd.read_csv("LamBindingEnergy.csv")
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='x',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10,fillstyle='none')
@@ -99,12 +102,11 @@ ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error
 
 ax.set_xlim(0,0.3)
 ax.set_ylim(0,30)
-ax.legend(loc='upper right',frameon=0,numpoints=1,fontsize=12)
+ax.legend(loc='upper right',frameon=0,numpoints=1,fontsize=10)
 #ax.legend(loc='lower left',frameon=0,numpoints=1,fontsize=14)
 #ax.set_xlim(0.20,0.25)
 #ax.set_ylim(11.0,13.5)
 plt.yticks(arange(5,30.1,5), fontsize=14)
-#plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
 ax.set_ylabel('$B_\Lambda $ (MeV)',fontsize=16)
 ax.set_xlabel(r'$A^{-2/3}$',fontsize=16)
 ax.tick_params(axis='x', which='both',top='true',bottom='true', direction='in',labelsize=14)
@@ -115,8 +117,10 @@ ax.tick_params(axis='y', which='both',left='true',right='true', direction='in',l
 #ax.set_yticks([-50,0,50,100,200,300])
 #ax.tick_params(labelsize=12)
 
-plt.savefig("BElam_GKW3a.pdf",dpi=300)
-plt.savefig("BElam_GKW3a.png",dpi=300)
+#plt.tight_layout()
+
+plt.savefig("BElam_GKWMD3a.pdf",dpi=300)
+plt.savefig("BElam_GKWMD3a.png",dpi=300)
 plt.show()
 
 #指定可能なファイル形式は emf, eps, jpeg, jpg, pdf, png, ps, raw, rgba, svg,

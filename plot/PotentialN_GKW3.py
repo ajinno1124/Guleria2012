@@ -10,7 +10,7 @@ import cmath
 
 
 #plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.family'] = 'Times New Roman'
+#plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['text.usetex'] = False
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
@@ -20,25 +20,41 @@ d2_pot=pd.read_csv('../data/Z20N19L1_SLy4GKW3_medium(rho1.5)/potential.csv',comm
 d3_pot=pd.read_csv('../data/Z39N49L1_SLy4GKW3_medium(rho1.5)/potential.csv',comment='#')
 d4_pot=pd.read_csv('../data/Z57N81L1_SLy4GKW3_medium(rho1.5)/potential.csv',comment='#')
 d5_pot=pd.read_csv('../data/Z82N125L1_SLy4GKW3_medium(rho1.5)/potential.csv',comment='#')
+
+d6_pot=pd.read_csv('../data/Z8N7L0_SLy4NaN/potential.csv',comment='#')
+d7_pot=pd.read_csv('../data/Z20N19L0_SLy4NaN/potential.csv',comment='#')
+d8_pot=pd.read_csv('../data/Z39N49L0_SLy4NaN/potential.csv',comment='#')
+d9_pot=pd.read_csv('../data/Z57N81L0_SLy4NaN/potential.csv',comment='#')
+d10_pot=pd.read_csv('../data/Z82N125L0_SLy4NaN/potential.csv',comment='#')
 #print(d1_dense.head)
 
 fig=plt.figure()
 subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
 ax = subplot(1,1,1)
 
-ax.plot(d1_pot["r(fm)"],d1_pot["VNp(MeV)"],label=r"$^{16}_\Lambda$O",linewidth=2,color="k", ls="-")
-ax.plot(d2_pot["r(fm)"],d2_pot["VNp(MeV)"],label=r"$^{40}_\Lambda$Ca",linewidth=2,color="red", ls="-")
-ax.plot(d3_pot["r(fm)"],d3_pot["VNp(MeV)"],label=r"$^{89}_\Lambda$Y",linewidth=2,color='b',ls='-')
-ax.plot(d4_pot["r(fm)"],d4_pot["VNp(MeV)"],label=r"$^{139}_\Lambda$La",linewidth=2,color='m',ls='-')
-ax.plot(d5_pot["r(fm)"],d5_pot["VNp(MeV)"],label=r"$^{208}_\Lambda$Pb",linewidth=2,color='darkgreen',ls='-')
+#ax.plot(d1_pot["r(fm)"],d1_pot["VNp(MeV)"],label="$^{16}_\Lambda$O",linewidth=2,color="k", ls="-")
+#ax.plot(d2_pot["r(fm)"],d2_pot["VNp(MeV)"],label="$^{40}_\Lambda$Ca",linewidth=2,color="red", ls="-")
+#ax.plot(d3_pot["r(fm)"],d3_pot["VNp(MeV)"],label="$V_{proton}$ $^{89}_\Lambda$Y",linewidth=2,color='b',ls='-')
+#ax.plot(d4_pot["r(fm)"],d4_pot["VNp(MeV)"],label="$V_{proton}$ $^{139}_\Lambda$La",linewidth=2,color='m',ls='-')
+#ax.plot(d5_pot["r(fm)"],d5_pot["VNp(MeV)"],label="$V_{proton}$ $^{208}_\Lambda$Pb",linewidth=2,color='darkgreen',ls='-')
+ax.plot(d3_pot["r(fm)"],d3_pot["VNn(MeV)"],label="$V_{neutron}$ $^{89}_\Lambda$Y",linewidth=1,color='b',ls='-')
+#ax.plot(d8_pot["r(fm)"],d8_pot["VNn(MeV)"],label="$V_{neutron}$ $^{88}$Y",linewidth=1,color='b',ls='--')
+
+ax.plot(d4_pot["r(fm)"],d4_pot["VNn(MeV)"],label="$V_{neutron}$ $^{139}_\Lambda$La",linewidth=1,color='r',ls='-')
+#ax.plot(d9_pot["r(fm)"],d9_pot["VNn(MeV)"],label="$V_{neutron}$ $^{138}$La",linewidth=1,color='r',ls='--')
+
+ax.plot(d5_pot["r(fm)"],d5_pot["VNn(MeV)"],label="$V_{neutron}$ $^{208}_\Lambda$Pb",linewidth=1,color='darkgreen',ls='-')
+#ax.plot(d10_pot["r(fm)"],d10_pot["VNn(MeV)"],label="$V_{neutron}$ $^{207}$Pb",linewidth=1,color='darkgreen',ls='--')
 
 ax.text(7.5,-60,'SLy4',{'color':'k','fontsize':14})
-ax.text(7,-70,r'GKW3(u<1.5)',{'color':'k','fontsize':14})
+ax.text(7,-70,'GKW3(u<1.5)',{'color':'k','fontsize':14})
 #ax.text(0.5,-15,'$^{208}_\Lambda$Pb',{'color':'k','fontsize':14})
 
 ax.legend(loc='upper left',frameon=0,numpoints=1,fontsize=14)
 ax.set_xlim(0,10)
 ax.set_ylim(-85,0)
+#ax.set_xlim(0,1)
+#ax.set_ylim(-75,-60)
 #plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
 ax.set_ylabel('Potential (MeV)',fontsize=16)
 ax.set_xlabel('$r$ (fm)',fontsize=16)

@@ -1,4 +1,5 @@
 include("Main.jl")
+using .Threads
 
 function run(NParamType,LParamType)
     ZN=[
@@ -9,7 +10,7 @@ function run(NParamType,LParamType)
 		[5,5],
 		[5,6],
         [6,5],
-		[6,8],
+		[6,6],
 		[7,8],
         [8,7],
         [14,13],
@@ -19,7 +20,7 @@ function run(NParamType,LParamType)
         [39,49],
         [57,81],
         [82,125]
-    ]
+	]
 
     for i=eachindex(ZN)
 		if LParamType==-1
@@ -39,8 +40,28 @@ function run(NParamType,LParamType)
 
 end
 
+function run_threads()
+	#GKW_w/o mom. dep.
+	#NParamType="SLy4"
+	#LParamType=[38,37,36,33,-1]
+
+	#GKW w/ mom. dep.
+	#NParamType="SLy4"
+	#LParamType=[35,39,40,41,-1]
+
+	#Lanskoy and Yamamoto
+	NParamType="SK3"
+	LParamType=[9,26,-1]
+	@threads for i=eachindex(LParamType)
+		run(NParamType,LParamType[i])
+	end
+end
+
+run_threads()
+#=
 run("SLy4",38)
 run("SLy4",37)
 run("SLy4",36)
 run("SLy4",33)
 run("SLy4",-1)
+=#

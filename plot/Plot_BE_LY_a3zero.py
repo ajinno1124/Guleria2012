@@ -11,13 +11,23 @@ import cmath
 # create BindingEnergyLY.csv
 def BindingEnergyL(NParamType,LParamType):
 	AN=np.array([
-		[6,5],
-		[8,7],
-		[14,13],
-		[23,27],
-		[39,49],
-		[57,81],
-		[82,125]
+		[2,5],
+		[3,5],
+		[4,5],
+		[5,4],
+		[5,5],
+		[5,6],
+        [6,5],
+		[6,6],
+		[7,8],
+        [8,7],
+        [14,13],
+		[16,15],
+		[20,19],
+        [23,27],
+        [39,49],
+        [57,81],
+        [82,125]
 	])
 
 	f=open(f'BindingEnergy{LParamType}.csv','w',encoding="utf-8")
@@ -60,7 +70,7 @@ ax = subplot(1,1,1)
 df_data=pd.read_csv("LamBindingEnergy.csv")
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='o',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10)
 
-def Plot_OnePot(LParamType,color,linestyle):
+def Plot_OnePot(LParamType,color,fmt):
 	df=pd.read_csv(f'BindingEnergy{LParamType}.csv',comment='#')
 	d0=df[df["lLam"]==0]
 	d1=df[df["lLam"]==1]
@@ -70,15 +80,15 @@ def Plot_OnePot(LParamType,color,linestyle):
 	d5=df[df["lLam"]==5]
 	#print(d1_pot.head)
 
-	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],label=f"{LParamType}",c=color,ls=linestyle)
-	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],c=color,ls=linestyle)
-	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],c=color,ls=linestyle)
+	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],fmt,label=f"{LParamType}",c=color)
+	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],fmt,c=color)
+	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],fmt,c=color)
+	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],fmt,c=color)
+	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],fmt,c=color)
+	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],fmt,c=color)
 
-Plot_OnePot("LY1",'b','-')
-Plot_OnePot("LY1_a3zero",'r','--')
+Plot_OnePot("LY1",'b','o-')
+Plot_OnePot("LY1_a3zero",'r','s-')
 
 
 #ax.text(0.1,28,r'SK3',{'color':'k','fontsize':14})
