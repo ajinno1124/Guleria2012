@@ -33,6 +33,7 @@ ax.plot(d3_dense["r(fm)"],d3_dense["Rhol"],label=r"$^{89}_\Lambda$Y",linewidth=2
 ax.plot(d4_dense["r(fm)"],d4_dense["Rhol"],label=r"$^{139}_\Lambda$La",linewidth=2,color='m')
 ax.plot(d5_dense["r(fm)"],d5_dense["Rhol"],label=r"$^{208}_\Lambda$Pb",linewidth=2,color='darkgreen')
 
+
 ax.text(7,0.0050,'SLy4',{'color':'k','fontsize':14})
 ax.text(7,0.0025,'GKW3 (u<1.5)',{'color':'k','fontsize':14})
 #ax.text(6,0.0025,'$^{208}_\Lambda$Pb',{'color':'k','fontsize':16})

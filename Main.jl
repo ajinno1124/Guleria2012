@@ -18,7 +18,7 @@ using DataFrames
     e2MeVfm=1.4400
 
     Nmesh=150
-    Nmatch=45
+    Nmatch=35
     rmax=30
     lmax=7
 end
@@ -814,10 +814,10 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
 
     write(io1, "r(fm)")
-    write(io1, ",Rhop,dRhop,LapRhop,Jp,DivJp")
-    write(io1, ",Rhon,dRhon,LapRhon,Jn,DivJn")
-    write(io1, ",Rhol,dRhol,LapRhol,Jl,DivJl")
-    write(io1, ",RhoN,dRhoN,LapRhoN,JN,DivJN\n")
+    write(io1, ",Rhop,dRhop,LapRhop,taup,Jp,DivJp")
+    write(io1, ",Rhon,dRhon,LapRhon,taun,Jn,DivJn")
+    write(io1, ",Rhol,dRhol,LapRhol,taul,Jl,DivJl")
+    write(io1, ",RhoN,dRhoN,LapRhoN,tauN,JN,DivJN\n")
 
     for n in 1:Nmesh
         write(io1, "$(rmesh[n])")
@@ -826,12 +826,14 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
                 write(io1, ",$(ρ3[b,n])")
                 write(io1, ",$(dρ3[b,n])")
                 write(io1, ",$(Lapρ3[b,n])")
+				write(io1, ",$(τ3[b,n])")
                 write(io1, ",$(J3[b,n])")
                 write(io1, ",$(divJ3[b,n])")
             elseif b==4
                 write(io1, ",$(ρN[n])")
                 write(io1, ",$(dρN[n])")
                 write(io1, ",$(LapρN[n])")
+				write(io1, ",$(τN[n])")
                 write(io1, ",$(JN[n])")
                 write(io1, ",$(divJN[n])")
             end

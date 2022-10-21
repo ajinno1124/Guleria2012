@@ -29,9 +29,9 @@ ax = subplot(1,1,1)
 
 #ax.plot(d1_dense["r(fm)"],d1_dense["RhoN"],label=r"$^{16}_\Lambda$O",linewidth=2,color="k")
 #ax.plot(d2_dense["r(fm)"],d2_dense["RhoN"],label=r"$^{40}_\Lambda$Ca",linewidth=2,color="m")
-ax.plot(d3_dense["r(fm)"],d3_dense["RhoN"],label=r"$^{89}_\Lambda$Y",linewidth=2,color='b',ls='--')
+ax.plot(d3_dense["r(fm)"],d3_dense["RhoN"],label=r"$^{89}_\Lambda$Y",linewidth=2,color='b',ls='-')
 ax.plot(d4_dense["r(fm)"],d4_dense["RhoN"],label=r"$^{139}_\Lambda$La",linewidth=2,color='r',ls='-')
-ax.plot(d5_dense["r(fm)"],d5_dense["RhoN"],label=r"$^{208}_\Lambda$Pb",linewidth=2,color='darkgreen',ls='-.')
+ax.plot(d5_dense["r(fm)"],d5_dense["RhoN"],label=r"$^{208}_\Lambda$Pb",linewidth=2,color='darkgreen',ls='-')
 
 ax.text(7.5,0.090,'SLy4',{'color':'k','fontsize':14})
 ax.text(7.5,0.075,'GKW3 (u<1.5)',{'color':'k','fontsize':14})

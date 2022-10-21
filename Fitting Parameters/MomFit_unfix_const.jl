@@ -20,7 +20,7 @@ using DelimitedFiles
 	ρ0_GKW=0.16
 
     ρ_cutoff=1.5
-	k_cutoff=1.0
+	k_cutoff=1.5
 end
 
 #=
@@ -144,6 +144,10 @@ function getaL2(ParamType::String)
 		aL2=40.84151607273452
 	elseif ParamType=="Kohno3_1.0"
 		aL2=53.53651324877708
+	elseif ParamType=="Kohno2_1.5"
+		aL2=39.3504826321229
+	elseif ParamType=="Kohno3_1.5"
+		aL2=47.2786603694698
 	end
 
 	return aL2
