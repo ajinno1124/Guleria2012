@@ -70,7 +70,7 @@ ax = subplot(1,1,1)
 df_data=pd.read_csv("LamBindingEnergy.csv")
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='o',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10)
 
-def Plot_OnePot(LParamType,color,fmt):
+def Plot_OnePot(LParamType,color,fmt,linewidth):
 	df=pd.read_csv(f'BindingEnergy{LParamType}.csv',comment='#')
 	d0=df[df["lLam"]==0]
 	d1=df[df["lLam"]==1]
@@ -80,15 +80,15 @@ def Plot_OnePot(LParamType,color,fmt):
 	d5=df[df["lLam"]==5]
 	#print(d1_pot.head)
 
-	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],fmt,label=f"{LParamType}",c=color)
-	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],fmt,c=color)
-	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],fmt,c=color)
-	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],fmt,c=color)
-	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],fmt,c=color)
-	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],fmt,c=color)
+	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],fmt,label=f"{LParamType}",c=color,lw=linewidth,ms=3.5,fillstyle='none')
+	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
+	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
+	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
+	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
+	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
 
-Plot_OnePot("LY1",'b','o-')
-Plot_OnePot("LY1_a3zero",'r','s-')
+Plot_OnePot("LY1",'b','o-',0.7)
+Plot_OnePot("LY1_a3zero",'r','s-',0.7)
 
 
 #ax.text(0.1,28,r'SK3',{'color':'k','fontsize':14})

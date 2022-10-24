@@ -21,14 +21,13 @@ function getτq(ρq)
     return 3.0/5.0*kfq^2*ρq
 end
 
-function Uopt(ρp,ρn,kL,aL,γ1,γ2)
+function Uopt(ρp,ρn,kL,aL,γ1,γ2,γ3,γ4)
 	ρN=ρp+ρn
 	τN=getτq(ρp)+getτq(ρn)
-	return aL[1]*ρN+aL[2]*(kL^2*ρN+τN)+aL[4]*ρN^(1+γ1)+aL[5]*ρN^(1+γ2)+aL[6]*(ρN^2 + 2*ρp*ρn)
+	return aL[1]*ρN+aL[2]*(kL^2*ρN+τN)+aL[4]*ρN^(1+γ1)+aL[5]*ρN^(1+γ2)+aL[6]*ρN^(1+γ3)+aL[7]*ρN^(1+γ4)+aL[8]*(ρN^2 + 2*ρp*ρn)
 end
 
-function OutputPotentialData(LParamType::String)
-	ρ0=0.16
+function OutputPotentialData(LParamType::Int)
 	pL=LambdaParameters.getParams(LParamType)
 	aL=LambdaParameters.getaL(LParamType)
 
@@ -37,11 +36,11 @@ function OutputPotentialData(LParamType::String)
 	#for i=eachindex(umesh)
 	#	U_dense[i]=Uopt(umesh[i]*ρ0/2.0,umesh[i]*ρ0/2.0,0.0,aL,pL.γ1,pL.γ2)
 	#end
-	Uopt_dense(ρN)=Uopt(ρN/2.0,ρN/2.0,0.0,aL,pL.γ1,pL.γ2)
-	U_dense=Uopt_dense.(umesh*ρ0)
+	Uopt_dense(ρN)=Uopt(ρN/2.0,ρN/2.0,0.0,aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4)
+	U_dense=Uopt_dense.(umesh*ρ0_GKW)
 
 	kmesh=0:0.01:3
-	Uopt_mom(kL)=Uopt(ρ0/2.0,ρ0/2.0,kL,aL,pL.γ1,pL.γ2)
+	Uopt_mom(kL)=Uopt(ρ0_Kohno/2.0,ρ0_Kohno/2.0,kL,aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4)
 	U_mom=Uopt_mom.(kmesh)
 
 	rm("data/Potential_$(LParamType)",force=true,recursive=true)
@@ -66,14 +65,6 @@ function OutputPotentialData(LParamType::String)
 	cd("../..")
 end
 
-OutputPotentialData("HPL2")
-OutputPotentialData("LY1")
-#OutputPotentialData("GKW2")
-#OutputPotentialData("GKW3")
-#OutputPotentialData("GKW2+MD1")
-#OutputPotentialData("GKW3+MD2")
-#OutputPotentialData("GKW3+MD3")
-OutputPotentialData("GKW2_1.5")
-OutputPotentialData("GKW3_1.5")
-OutputPotentialData("GKW2_1.5+Kohno2")
-OutputPotentialData("GKW3_1.5+Kohno3")
+for i in 1:46
+	OutputPotentialData(i)
+end

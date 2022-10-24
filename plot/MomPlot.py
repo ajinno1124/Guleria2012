@@ -10,16 +10,19 @@ import cmath
 
 #d1_mom=pd.read_csv('../data/Potential_GKW2/MomentumDep_GKW2.csv')
 #d2_mom=pd.read_csv('../data/Potential_GKW3/MomentumDep_GKW3.csv')
-d3_mom=pd.read_csv('../data/Potential_GKW2+MD1/MomentumDep_GKW2+MD1.csv')
-d4_mom=pd.read_csv('../data/Potential_GKW3+MD2/MomentumDep_GKW3+MD2.csv')
-d5_mom=pd.read_csv('../data/Potential_GKW3+MD3/MomentumDep_GKW3+MD3.csv')
-d6_mom=pd.read_csv('../data/Potential_HPL2/MomentumDep_HPL2.csv')
-d7_mom=pd.read_csv('../data/Potential_LY1/MomentumDep_LY1.csv')
+#d3_mom=pd.read_csv('../data/Potential_GKW2+MD1/MomentumDep_GKW2+MD1.csv')
+#d4_mom=pd.read_csv('../data/Potential_GKW3+MD2/MomentumDep_GKW3+MD2.csv')
+#d5_mom=pd.read_csv('../data/Potential_GKW3+MD3/MomentumDep_GKW3+MD3.csv')
+#d6_mom=pd.read_csv('../data/Potential_HPL2/MomentumDep_HPL2.csv')
+#d7_mom=pd.read_csv('../data/Potential_LY1/MomentumDep_LY1.csv')
 
 #d8_mom=pd.read_csv('../data/Potential_GKW2_1.5/MomentumDep_GKW2_1.5.csv')
 #d9_mom=pd.read_csv('../data/Potential_GKW3_1.5/MomentumDep_GKW3_1.5.csv')
-d10_mom=pd.read_csv('../data/Potential_GKW2_1.5+Kohno2/MomentumDep_GKW2_1.5+Kohno2.csv')
-d11_mom=pd.read_csv('../data/Potential_GKW3_1.5+Kohno3/MomentumDep_GKW3_1.5+Kohno3.csv')
+#d10_mom=pd.read_csv('../data/Potential_GKW2_1.5+Kohno2/MomentumDep_GKW2_1.5+Kohno2.csv')
+#d11_mom=pd.read_csv('../data/Potential_GKW3_1.5+Kohno3/MomentumDep_GKW3_1.5+Kohno3.csv')
+
+d12_mom=pd.read_csv('../data/Potential_GKW3_1.5+Kohno3/MomentumDep_GKW3_1.5+Kohno3.csv')
+d13_mom=pd.read_csv('../data/Potential_GKW3_1.5+Kohno3/MomentumDep_GKW3_1.5+Kohno3.csv')
 
 fig=plt.figure()
 subplots_adjust(hspace=0.0,wspace=0.0,top=0.97,left=0.24,right=0.96)
