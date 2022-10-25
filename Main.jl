@@ -882,12 +882,15 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
 end
 
 ##################################################
-function SpatialInt(Func)
+function SpatialInt(y::Vector{Float64})
 	rmesh=getrmesh()
-	ans=0.0
-	if rmesh[1]==0
-		ans+=MyLib.IntTrap(rmesh,Func)
+	ans=MyLib.IntTrap(rmesh, (@. y[:]*rmesh[:]^2))*4*π
+	if rmesh[1]!=0
+		ans+=4*π*rmesh[1]^2*y[1]
+	end
+	return ans
 end
+
 # Calculate Binding Energy
 function Hamiltonian_N(aN,σ,W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
     Hn=zeros(Float64,Nmesh)
