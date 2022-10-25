@@ -47,8 +47,11 @@ end
 
 function getrmesh()
     #Be careful for the SolvePoissionEq
-    h=rmax/Nmesh
-    rmesh=0:h:h*(Nmesh-1)
+    #h=rmax/Nmesh
+    #rmesh=0:h:h*(Nmesh-1)
+
+	h=rmax/Nmesh
+	rmesh=0.5*h:h:h(Nmesh-0.5)
     return rmesh
 end
 
@@ -103,7 +106,7 @@ function InitPot(AN::AtomNum,rmesh)
 end
 
 #######################################
-# Differential Equation AR''+BR+CR=ER #
+# Differential Equation AR''+ CR=ER #
 # R=u, R'=v                           #
 #######################################
 function CalcABC(QN,h2mB,dh2mB,ddh2m,VB,WB,rmesh)
@@ -114,10 +117,10 @@ function CalcABC(QN,h2mB,dh2mB,ddh2m,VB,WB,rmesh)
     @. A[:] += -h2mB[:]
 
     C[1]=NaN #singular behavior
-    @. C[2:Nmesh] += -0.25*dh2mB[2:Nmesh]^2/h2mB[2:Nmesh]
-    @. C[2:Nmesh] += 0.5*ddh2m[2:Nmesh]
-    @. C[2:Nmesh] += h2mB[2:Nmesh]*l*(l+1)/(rmesh[2:Nmesh]^2) + VB[2:Nmesh]
-    @. C[2:Nmesh] += dh2mB[2:Nmesh]/rmesh[2:Nmesh] + WB[2:Nmesh]/rmesh[2:Nmesh]*(j*(j+1)-l*(l+1)-0.75)
+    @. C[:] += -0.25*dh2mB[:]^2/h2mB[:]
+    @. C[:] += 0.5*ddh2m[:]
+    @. C[:] += h2mB[:]*l*(l+1)/(rmesh[:]^2) + VB[:]
+    @. C[:] += dh2mB[:]/rmesh[:] + WB[:]/rmesh[:]*(j*(j+1)-l*(l+1)-0.75)
 
     return A,C
 end
@@ -137,9 +140,16 @@ function BoundCond(QN,E,A,C,rmesh)
     l=QN.l
     mass=getmass(QN)
     h=rmesh[2]-rmesh[1]
+	Pr=(-1)^(l+1) #Parity
+
     Rin=zeros(Float64,3)
-    Rin[1]=0 # r=rmesh[1]=0
-    Rin[2]=h # r=rmesh[2]=h
+    Rin[1]=0.5*h # r=rmesh[1]=0.5*h
+	#ψvec=[Rin[3],Rin[4]]
+	#fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]]
+	Rin[2]=Numerov6([Pr*Rin[1],Rin[1]], [(C[1]-E)/A[1],(C[1]-E)/A[1],(C[2]-E)/A[2]])
+	Rin[3]=Numerov6([Rin[1],Rin[2]], [(C[1]-E)/A[1],(C[2]-E)/A[2],(C[3]-E)/A[3]])
+
+	#=
     if l!=1
         Rin[3]+=(2 - 5*h^2*(C[2]-E)/A[2]/6)*Rin[2]
         #Rin[3]-=0
@@ -149,6 +159,7 @@ function BoundCond(QN,E,A,C,rmesh)
         Rin[3]-=h^2 /12 * (ħc^2/(2*mass)*l*(l+1)*Rin[2]/rmesh[2]^2-E)/A[1]
         Rin[3]/=(1+h^2*(C[3]-E)/A[3]/12)
     end
+	=#
 
     Rout=zeros(Float64,3)
     Rout[3]=exp(-(-2*mass/ħc^2*E)^(0.5) * rmesh[Nmesh])
@@ -189,8 +200,9 @@ end
 
 ##########################################################
 #Calculate States by given A, B, C
-function NormFact(rmesh,ψ)
+function NormFactor(rmesh,ψ)
     ans=MyLib.IntTrap(rmesh,@. ψ[:]^2)
+	ans+=0.5*rmesh[1]*ψ[1]^2 #add between r=0~rmesh[1]
     ans=sqrt(ans)
     return ans
 end
@@ -217,7 +229,7 @@ function RadWaveFunc(E,QN::QuantumNumber,A,C,rmesh)
 
     @. R[:]*=(-A[:])^(-0.5)
 
-    Norm=NormFact(rmesh,R)
+    Norm=NormFactor(rmesh,R)
     R*=sign(R[2]-R[1])/Norm
 
     return R
@@ -293,6 +305,7 @@ end
 
 ##########################################################
 # interpolate the even function value at r=0
+#=
 function InterPolEvenFunc0(f2,f3,f4)
     val=0.0
     val+=37.0/24.0*f2
@@ -301,6 +314,7 @@ function InterPolEvenFunc0(f2,f3,f4)
 
     return val
 end
+=#
 
 # defene Density, Potential
 function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
@@ -309,11 +323,11 @@ function Calc_ρ(occ::Vector{Float64},States::Vector{SingleParticleState},rmesh)
         j=States[i].QN.j
         l=States[i].QN.l
         R=States[i].ψ
-        if l==0
-            R1r1=InterPolEvenFunc0(R[2]/rmesh[2],R[3]/rmesh[3],R[4]/rmesh[4])
-            ρ[1]+=occ[i]*(2*j+1)/(4*π)*(R1r1)^2
-        end
-        @. ρ[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[2:Nmesh]/rmesh[2:Nmesh])^2
+        #if l==0
+        #    R1r1=InterPolEvenFunc0(R[2]/rmesh[2],R[3]/rmesh[3],R[4]/rmesh[4])
+        #    ρ[1]+=occ[i]*(2*j+1)/(4*π)*(R1r1)^2
+        #end
+        @. ρ[:]+=occ[i]*(2*j+1)/(4*π)*(States[i].ψ[:]/rmesh[:])^2
     end
     return ρ
 end
@@ -335,16 +349,16 @@ function Calc_ddρ(ρ,rmesh)
     return ddρ
 end
 
-function Calc_Lapρ(ρ::Vector{Float64},rmesh)
+function Calc_Lapρ(ρ::Vector{Float64},dρ::Vector{Float64},rmesh)
     Lapρ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
-    dρ=Calc_dρ(ρ,rmesh)
+    #dρ=Calc_dρ(ρ,rmesh)
     ddρ=Calc_ddρ(ρ,rmesh)
-    dρr=zeros(Float64,Nmesh)
+    #dρr=zeros(Float64,Nmesh)
     #dρr[1]=dρ[2]/rmesh[2]
-    dρr[1]=InterPolEvenFunc0(dρ[2]/rmesh[2],dρ[3]/rmesh[3],dρ[4]/rmesh[4])
-    @. dρr[2:Nmesh]=dρ[2:Nmesh]/rmesh[2:Nmesh]
-    @. Lapρ[:]+=2*dρr[:] + ddρ[:]
+    #dρr[1]=InterPolEvenFunc0(dρ[2]/rmesh[2],dρ[3]/rmesh[3],dρ[4]/rmesh[4])
+    #@. dρr[:]=dρ[:]/rmesh[:]
+    @. Lapρ[:]+=2*dρ[:]/rmesh[:] + ddρ[:]
     return Lapρ
 end
 
@@ -360,23 +374,23 @@ function Calc_τ(occ,States::Vector{SingleParticleState},rmesh)
         P_Rr=(-1)^l
 
         R=States[i].ψ
-        if l==0
-            Rr[1]=InterPolEvenFunc0(R[2]/rmesh[2],R[3]/rmesh[3],R[4]/rmesh[4])
-        else
-            Rr[1]=0
-        end
-        @. Rr[2:Nmesh]=R[2:Nmesh]/rmesh[2:Nmesh]
+        #if l==0
+        #    Rr[1]=InterPolEvenFunc0(R[2]/rmesh[2],R[3]/rmesh[3],R[4]/rmesh[4])
+        #else
+        #    Rr[1]=0
+        #end
+        @. Rr[:]=R[:]/rmesh[:]
 
 		dRr=MyLib.diff1st5pt(h,Rr,P_Rr)
 
         @. τ[:]+=occ[i]*(2*j+1)/(4*π)*dRr[:]^2
 
-        if l==1
-            Rr2r2_r0=InterPolEvenFunc0(Rr[2]^2/rmesh[2]^2,Rr[3]^2/rmesh[3]^2,Rr[4]^2/rmesh[4]^2)
-            τ[1]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr2r2_r0
-        end
+        #if l==1
+            #Rr2r2_r0=InterPolEvenFunc0(Rr[2]^2/rmesh[2]^2,Rr[3]^2/rmesh[3]^2,Rr[4]^2/rmesh[4]^2)
+            #τ[1]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr2r2_r0
+        #end
         if l>0
-            @. τ[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr[2:Nmesh]^2/rmesh[2:Nmesh]^2
+            @. τ[:]+=occ[i]*(2*j+1)/(4*π)*l*(l+1)*Rr[:]^2/rmesh[:]^2
         end
     end
     return τ
@@ -397,7 +411,7 @@ function Calc_J(occ,States::Vector{SingleParticleState},rmesh)
         j=States[i].QN.j
         l=States[i].QN.l
         if l>0
-            @. J[2:Nmesh]+=occ[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[2:Nmesh]/rmesh[2:Nmesh])^2/rmesh[2:Nmesh]
+            @. J[:]+=occ[i]*(2*j+1)/(4*π)*(j*(j+1)-l*(l+1)-0.75)*(States[i].ψ[:]/rmesh[:])^2/rmesh[:]
         end
     end
     return J
@@ -416,10 +430,11 @@ function Calc_divJ(J::Vector{Float64},rmesh)
     divJ=zeros(Float64,Nmesh)
     h=rmesh[2]-rmesh[1]
     dJ=Calc_dJ(J,rmesh)
-    Jr=zeros(Float64,Nmesh)
-    Jr[1]=InterPolEvenFunc0(J[2]/rmesh[2],J[3]/rmesh[3],J[4]/rmesh[4])
-    @. Jr[2:Nmesh]=J[2:Nmesh]/rmesh[2:Nmesh]
-    @. divJ+=dJ[:]+2*Jr[:]
+    #Jr=zeros(Float64,Nmesh)
+    #Jr[1]=InterPolEvenFunc0(J[2]/rmesh[2],J[3]/rmesh[3],J[4]/rmesh[4])
+    #@. Jr[:]=J[:]/rmesh[:]
+    #@. divJ+=dJ[:]+2*Jr[:]
+	@. divJ+=dJ[:]+2*J[:]/rmesh[:]
     return divJ
 end
 
@@ -455,7 +470,7 @@ function Calc_VΛΛ_G(aL,γ1,ρN::Vector{Float64},ddρN,LapρN::Vector{Float64},
 end
 
 function Calc_VΛN(aL,γ1,γ2,γ3,γ4,ρN::Vector{Float64},ρΛ::Vector{Float64},LapρΛ::Vector{Float64},τΛ::Vector{Float64},ρq::Vector{Float64})
-    return @. aL[1]*ρΛ+aL[2]*τΛ-aL[3]*LapρΛ+(γ1+1)*aL[4]*(ρN^γ1)*ρΛ+(γ2+1)*aL[5]*(ρN^γ2)*ρΛ+(γ2+1)*aL[6]*(ρN^γ3)*ρΛ+(γ3+1)*aL[7]*(ρN^γ4)*ρΛ+2*aL[8]*ρΛ*(ρN+ρq)
+    return @. aL[1]*ρΛ+aL[2]*τΛ-aL[3]*LapρΛ+(γ1+1)*aL[4]*(ρN^γ1)*ρΛ+(γ2+1)*aL[5]*(ρN^γ2)*ρΛ+(γ3+1)*aL[6]*(ρN^γ3)*ρΛ+(γ4+1)*aL[7]*(ρN^γ4)*ρΛ+2*aL[8]*ρΛ*(ρN+ρq)
 end
 
 # Guleria Ver.
@@ -479,8 +494,9 @@ end
 function Calc_Vcoul(ρp::Vector{Float64},rmesh,Z)
     Vcoul=zeros(Float64,Nmesh)
     Vcoul+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
-    @. Vcoul[2:Nmesh]=Vcoul[2:Nmesh]/rmesh[2:Nmesh]
-    Vcoul[1]=InterPolEvenFunc0(Vcoul[2],Vcoul[3],Vcoul[4])
+    #@. Vcoul[2:Nmesh]=Vcoul[2:Nmesh]/rmesh[2:Nmesh]
+    #Vcoul[1]=InterPolEvenFunc0(Vcoul[2],Vcoul[3],Vcoul[4])
+	@. Vcoul[:]=Vcoul[:]/rmesh[:]
     @. Vcoul[:]+=-(3*ρp[:]/π)^(1/3)
     Vcoul*=e2MeVfm
 
@@ -508,7 +524,7 @@ function Calc_Density(Allocc,AllStates)
     for b in 1:3
         ρ3[b,:]=Calc_ρ(Allocc[b],AllStates[b],rmesh)
         dρ3[b,:]=Calc_dρ(ρ3[b,:],rmesh)
-        Lapρ3[b,:]=Calc_Lapρ(ρ3[b,:],rmesh)
+        Lapρ3[b,:]=Calc_Lapρ(ρ3[b,:],dρ3[b,:],rmesh)
         τ3[b,:]=Calc_τ(Allocc[b],AllStates[b],rmesh)
         J3[b,:]=Calc_J(Allocc[b],AllStates[b],rmesh)
         divJ3[b,:]=Calc_divJ(J3[b,:],rmesh)
@@ -528,7 +544,7 @@ function Calc_Coef(ρ3,τ3,J3,aN,aL,pN,pΛ,AN::AtomNum)
 
     for b in 1:3
         dρ3[b,:]=Calc_dρ(ρ3[b,:],rmesh)
-        Lapρ3[b,:]=Calc_Lapρ(ρ3[b,:],rmesh)
+        Lapρ3[b,:]=Calc_Lapρ(ρ3[b,:],dρ3[b,:],rmesh)
         divJ3[b,:]=Calc_divJ(J3[b,:],rmesh)
     end
 
@@ -540,14 +556,16 @@ function Calc_Coef(ρ3,τ3,J3,aN,aL,pN,pΛ,AN::AtomNum)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-    dτ3=zeros(Float64,(3,Nmesh))
-    ddρ3=zeros(Float64,(3,Nmesh))
-    for b in 1:3
-        dτ3[b,:]=Calc_dτ(τ3[b,:],rmesh)
-        ddρ3[b,:]=Calc_ddρ(ρ3[b,:],rmesh)
-    end
-    dτN=dτ3[1,:]+dτ3[2,:]
-    ddρN=ddρ3[1,:]+ddρ3[2,:]
+	if isGuleria==1
+		dτ3=zeros(Float64,(3,Nmesh))
+		ddρ3=zeros(Float64,(3,Nmesh))
+		for b in 1:3
+			dτ3[b,:]=Calc_dτ(τ3[b,:],rmesh)
+			ddρ3[b,:]=Calc_ddρ(ρ3[b,:],rmesh)
+		end
+		dτN=dτ3[1,:]+dτ3[2,:]
+		ddρN=ddρ3[1,:]+ddρ3[2,:]
+	end
 
     h2m=zeros(Float64,(3,Nmesh))
     dh2m=zeros(Float64,(3,Nmesh))
@@ -864,6 +882,12 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
 end
 
 ##################################################
+function SpatialInt(Func)
+	rmesh=getrmesh()
+	ans=0.0
+	if rmesh[1]==0
+		ans+=MyLib.IntTrap(rmesh,Func)
+end
 # Calculate Binding Energy
 function Hamiltonian_N(aN,σ,W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
     Hn=zeros(Float64,Nmesh)
@@ -1096,7 +1120,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 
 		ρ3[3,:]=Calc_ρ(Ansocc[3],AnsStates[3],rmesh)
         dρ3[3,:]=Calc_dρ(ρ3[3,:],rmesh)
-        Lapρ3[3,:]=Calc_Lapρ(ρ3[3,:],rmesh)
+        Lapρ3[3,:]=Calc_Lapρ(ρ3[3,:],dρ3[b,:],rmesh)
         τ3[3,:]=Calc_τ(Ansocc[3],AnsStates[3],rmesh)
         J3[3,:]=Calc_J(Ansocc[3],AnsStates[3],rmesh)
         divJ3[3,:]=Calc_divJ(J3[3,:],rmesh)

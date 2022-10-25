@@ -17,7 +17,8 @@ module MyLib
     function diff1st5pt(h::Float64,y::Vector{Float64},P::Int)
         N=length(y)
         dy=zeros(Float64,N)
-        dy[1]=(-y[3]/12 + y[2]*2/3 - P*y[2]*2/3 + P*y[3]/12)/h
+        #dy[1]=(-y[3]/12 + y[2]*2/3 - P*y[2]*2/3 + P*y[3]/12)/h #rmesh=0:h:...
+		dy[1]=(-y[3]/12 + y[2]*2/3 - P*y[1]*2/3 + P*y[2]/12)/h #rmesh=0.5*h:h:...
 		dy[2]=(-y[4]/12 + y[3]*2/3 - y[1]*2/3 + P*y[2]/12)/h
 		for i in 3:N-2
 			dy[i]=diff1st5pt(h,y[i-2:i+2])
@@ -36,8 +37,10 @@ module MyLib
         N=length(y)
         ddy=zeros(Float64,N)
         ddy=zeros(Float64,N)
-		ddy[1]=(-y[3]/12 + y[2]*4/3 - y[1]*5/2 + P*y[2]*4/3 - P*y[3]/12)/h^2
-		ddy[2]=(-y[4]/12 + y[3]*4/3 - y[2]*5/2 + y[1]*4/3 - P*y[2]/12)/h^2
+		#ddy[1]=(-y[3]/12 + y[2]*4/3 - y[1]*5/2 + P*y[2]*4/3 - P*y[3]/12)/h^2 #rmesh=0:h:...
+		ddy[1]=(-y[3]/12 + y[2]*4/3 - y[1]*5/2 + P*y[1]*4/3 - P*y[2]/12)/h^2 #rmesh=0.5*h:h:...
+		#ddy[2]=(-y[4]/12 + y[3]*4/3 - y[2]*5/2 + y[1]*4/3 - P*y[2]/12)/h^2 #rmesh=0:h:...
+		ddy[2]=(-y[4]/12 + y[3]*4/3 - y[2]*5/2 + y[1]*4/3 - P*y[1]/12)/h^2 #rmesh=0.5*h:h:...
 		for i in 3:N-2
 			ddy[i]=diff2nd5pt(h,y[i-2:i+2])
 		end
@@ -56,8 +59,12 @@ module MyLib
         h=rmesh[2]-rmesh[1]
 
         #mesh for h:h:...
-        U[1]=rmesh[1]
-        U[2]=2*U[1]-h^2*4*π*rmesh[1]*ρ[1]
+        #U[1]=rmesh[1]
+        #U[2]=2*U[1]-h^2*4*π*rmesh[1]*ρ[1]
+
+		#mesh for 0.5:h:...
+		U[1]=rmesh[1]
+		U[2]=3*U[1]-h^2*4*π*rmesh[1]*ρ[1]
 
         for i in 2:N-1
             U[i+1]=2*U[i]-U[i-1]-h^2*4*π*rmesh[i]*ρ[i]
