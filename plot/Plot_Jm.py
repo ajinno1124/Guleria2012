@@ -49,8 +49,8 @@ plt.tight_layout()
 
 #plt.savefig("v2ch.eps",format='eps',dpi=1000)
 #plt.savefig("pxe895qmdmsv.eps",format='eps',bbox__inches='tight')
-plt.savefig("JK.pdf",dpi=300)
-plt.savefig("JK.png",dpi=300)
+plt.savefig("Jm.pdf",dpi=300)
+plt.savefig("Jm.png",dpi=300)
 plt.show()
 
 #指定可能なファイル形式は emf, eps, jpeg, jpg, pdf, png, ps, raw, rgba, svg,

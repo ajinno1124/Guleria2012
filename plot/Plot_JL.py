@@ -17,7 +17,6 @@ plt.rcParams['figure.subplot.bottom'] = 0.15
 
 d1=pd.read_csv('../JLK.csv',comment='#')
 
-d_YBZ
 
 fig=plt.figure()
 subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
