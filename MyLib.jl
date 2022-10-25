@@ -13,7 +13,7 @@ module MyLib
 		return (-y[5]/12 + y[4]*2/3 - y[2]*2/3 + y[1]/12)/h
 	end
 
-	# only used the rmesh=0:h:...
+	# only used for the rmesh=0:h:...
     function diff1st5pt(h::Float64,y::Vector{Float64},P::Int)
         N=length(y)
         dy=zeros(Float64,N)
