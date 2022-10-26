@@ -51,7 +51,7 @@ function getrmesh()
     #rmesh=0:h:h*(Nmesh-1)
 
 	h=rmax/Nmesh
-	rmesh=0.5*h:h:h(Nmesh-0.5)
+	rmesh=0.5*h:h:h*(Nmesh-0.5)
     return rmesh
 end
 
@@ -116,7 +116,7 @@ function CalcABC(QN,h2mB,dh2mB,ddh2m,VB,WB,rmesh)
     C=zeros(Float64,Nmesh)
     @. A[:] += -h2mB[:]
 
-    C[1]=NaN #singular behavior
+    #C[1]=NaN #singular behavior
     @. C[:] += -0.25*dh2mB[:]^2/h2mB[:]
     @. C[:] += 0.5*ddh2m[:]
     @. C[:] += h2mB[:]*l*(l+1)/(rmesh[:]^2) + VB[:]
@@ -146,8 +146,8 @@ function BoundCond(QN,E,A,C,rmesh)
     Rin[1]=0.5*h # r=rmesh[1]=0.5*h
 	#ψvec=[Rin[3],Rin[4]]
 	#fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]]
-	Rin[2]=Numerov6([Pr*Rin[1],Rin[1]], [(C[1]-E)/A[1],(C[1]-E)/A[1],(C[2]-E)/A[2]])
-	Rin[3]=Numerov6([Rin[1],Rin[2]], [(C[1]-E)/A[1],(C[2]-E)/A[2],(C[3]-E)/A[3]])
+	Rin[2]=Numerov6([Pr*Rin[1],Rin[1]], [(C[1]-E)/A[1],(C[1]-E)/A[1],(C[2]-E)/A[2]],h)
+	Rin[3]=Numerov6([Rin[1],Rin[2]], [(C[1]-E)/A[1],(C[2]-E)/A[2],(C[3]-E)/A[3]],h)
 
 	#=
     if l!=1
@@ -815,8 +815,8 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
 
 	# Guleria
 	if isGuleria==1
-		VΛΛ=Calc_VΛΛ_G(aL,pL.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
-		VΛp=Calc_VΛN_G(aL,pL.γ,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
+		VΛΛ=Calc_VΛΛ_G(aL,pL.γ1,ρN,ddρN,LapρN,τN,dτ3[3,:])
+		VΛp=Calc_VΛN_G(aL,pL.γ1,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
 		VΛn=VΛp
 	else
 		# Rayet
@@ -882,7 +882,7 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
 end
 
 ##################################################
-function SpatialInt(y::Vector{Float64})
+function SpatialInt(rmesh,y::Vector{Float64})
 	rmesh=getrmesh()
 	ans=MyLib.IntTrap(rmesh, (@. y[:]*rmesh[:]^2))*4*π
 	if rmesh[1]!=0
@@ -912,7 +912,8 @@ end
 function Energy_N(aN,σ,W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
 	rmesh=getrmesh()
     Hn=Hamiltonian_N(aN,σ,W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
-    En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hn[:]))*4*π
+    #En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hn[:]))*4*π
+    En=SpatialInt(rmesh,Hn)
     return En
 end
 
@@ -933,7 +934,8 @@ end
 function Energy_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
 	rmesh=getrmesh()
     Hl=Hamiltonian_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
-    En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hl[:]))*4*π
+    #En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hl[:]))*4*π
+    En=SpatialInt(rmesh,Hl)
     return En
 end
 
@@ -950,7 +952,8 @@ end
 
 function Energy_coul_dir(ρp,rmesh,Z)
 	Hc_dir=H_coul_dir(ρp,rmesh,Z)
-	Ec_dir=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hc_dir[:]))*4*π
+	#Ec_dir=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hc_dir[:]))*4*π
+    Ec_dir=SpatialInt(rmesh,Hc_dir)
 	return Ec_dir
 end
 
@@ -966,7 +969,8 @@ end
 function Energy_coul_exch(ρp)
 	rmesh=getrmesh()
 	Hc_exch=H_coul_exch(ρp)
-	Ec_dir=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hc_exch[:]))*4*π
+	#Ec_dir=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hc_exch[:]))*4*π
+    Ec_dir=SpatialInt(rmesh,Hc_exch)
 	return Ec_dir
 end
 
@@ -982,7 +986,8 @@ function Energy_CM_dir(AN,τ3)
     N=AN.N
     Λ=AN.Λ
     for b in 1:3
-        Ecm_dir += MyLib.IntTrap(rmesh,@. rmesh[:]^2*τ3[b,:])*4*π
+        #Ecm_dir += MyLib.IntTrap(rmesh,@. rmesh[:]^2*τ3[b,:])*4*π
+        Ecm_dir += En=SpatialInt(rmesh,τ3[b,:])
     end
     Ecm_dir*=ħc^2/(2*(mpMeV*Z + mnMeV*N + mΛMeV*Λ))
     return Ecm_dir
@@ -1002,7 +1007,8 @@ function Energy_N_Kin(AN,τ3)
 	for b in 1:2
 		QN=QuantumNumber(0.5,0,b)
 		mass=getmass(QN)
-		E_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:] )*4*π
+		#E_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:] )*4*π
+        E_Kin += SpatialInt(rmesh,(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:])
 	end
 	return E_Kin
 end
@@ -1016,7 +1022,8 @@ function Energy_L_Kin(AN,τ3)
 	b=3
 	QN=QuantumNumber(0.5,0,b)
 	mass=getmass(QN)
-	E_L_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:] )*4*π
+	#E_L_Kin += MyLib.IntTrap(rmesh,@. rmesh[:]^2*(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:] )*4*π
+    E_L_Kin += SpatialInt(rmesh,(ħc^2/(2*mass)-ħc^2/(2*(mpMeV*Z+mnMeV*N+mΛMeV*Λ)))*τ3[b,:])
 
 	return E_L_Kin
 end
@@ -1026,7 +1033,8 @@ function Energy_N_R(aN,σ,ρ3,ρN)
 	rmesh=getrmesh()
 	@. Hn_R += aN[3]*ρN[:]^(σ+2)
     @. Hn_R += aN[4]*ρN[:]^σ*(ρ3[1,:]^2 + ρ3[2,:]^2)
-	En_R=0.5*σ*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hn_R[:])*4*π
+	#En_R=0.5*σ*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hn_R[:])*4*π
+    En_R=0.5*σ*SpatialInt(rmesh,Hn_R)*4*π
 
     En_R+=-1.0/3.0*Energy_coul_exch(ρ3[1,:])
 
@@ -1041,7 +1049,8 @@ function Energy_L_R(aL,γ1,γ2,γ3,γ4,ρ3,ρN)
     @. Hl_R += γ3*aL[6]*ρN[:]^(γ3+1)*ρ3[3,:]
     @. Hl_R += γ4*aL[7]*ρN[:]^(γ4+1)*ρ3[3,:]
     @. Hl_R += aL[8]*ρ3[3,:]*(ρN[:]^2 + 2*ρ3[1,:]*ρ3[2,:])
-	El_R=0.5*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hl_R[:])*4*π
+	#El_R=0.5*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hl_R[:])*4*π
+    El_R=0.5*SpatialInt(rmesh,Hl_R[:])
 	return El_R
 end
 

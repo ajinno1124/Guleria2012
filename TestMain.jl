@@ -156,17 +156,21 @@ function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
     aN=NuclParameters.getaN(NParamType)
     aL=LambdaParameters.getaL(LParamType)
     pN=NuclParameters.getParams(NParamType)
-    pΛ=LambdaParameters.getParams(LParamType)
+    pL=LambdaParameters.getParams(LParamType)
+	# Guleria
 	if isGuleria==1
-		VΛΛ=Calc_VΛΛ_G(aL,pΛ.γ,ρN,ddρN,LapρN,τN,dτ3[3,:])
-		VΛp=Calc_VΛN_G(aL,pΛ.γ,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
+		VΛΛ=Calc_VΛΛ_G(aL,pL.γ1,ρN,ddρN,LapρN,τN,dτ3[3,:])
+		VΛp=Calc_VΛN_G(aL,pL.γ1,ρ3[3,:],ddρ3[3,:],τ3[3,:],dτN,Lapρ3[3,:],ρN)
 		VΛn=VΛp
 	else
 		# Rayet
-		VΛΛ=Calc_VΛΛ(aL, pΛ.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
-		VΛp=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
-		VΛn=Calc_VΛN(aL, pΛ.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
+		VΛΛ=Calc_VΛΛ(aL, pL.γ1, pL.γ2, pL.γ3, pL.γ4, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+		VΛp=Calc_VΛN(aL, pL.γ1, pL.γ2, pL.γ3, pL.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+		VΛn=Calc_VΛN(aL, pL.γ1, pL.γ2, pL.γ3, pL.γ4, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
 	end
+    #VΛΛ=Calc_VΛΛ(aL, pL.γ, ρN,LapρN,τN,ρ3[1,:],ρ3[2,:])
+    #VΛp=Calc_VΛN(aL, pL.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[1,:])
+    #VΛn=Calc_VΛN(aL, pL.γ, ρN, ρ3[3,:],Lapρ3[3,:],τ3[3,:],ρ3[2,:])
     VNp=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[1,:], τN, τ3[1,:],LapρN,Lapρ3[1,:],divJN,divJ3[1,:])
     VNn=Calc_VNq(aN, pN.σ, pN.W0, ρN, ρ3[2,:], τN, τ3[2,:],LapρN,Lapρ3[2,:],divJN,divJ3[2,:])
     Vcoul=Calc_Vcoul(ρ3[1,:],rmesh,AN.Z)
