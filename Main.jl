@@ -942,8 +942,8 @@ end
 function H_coul_dir(ρp,rmesh,Z)
     Hcoul_dir=zeros(Float64,Nmesh)
     Hcoul_dir+=MyLib.SolvePoissonEq(ρp,rmesh,Z)
-    @. Hcoul_dir[2:Nmesh]*=0.5*ρp[2:Nmesh]/rmesh[2:Nmesh]
-    Hcoul_dir[1]=InterPolEvenFunc0(Hcoul_dir[2],Hcoul_dir[3],Hcoul_dir[4])
+    @. Hcoul_dir[:]*=0.5*ρp[:]/rmesh[:]
+    #Hcoul_dir[1]=InterPolEvenFunc0(Hcoul_dir[2],Hcoul_dir[3],Hcoul_dir[4])
     #Hcoul_dir*=e2MeVfm/2 #Chabanatd
     Hcoul_dir*=e2MeVfm #Reainhard
 
