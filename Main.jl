@@ -202,7 +202,7 @@ end
 #Calculate States by given A, B, C
 function NormFactor(rmesh,ψ)
     ans=MyLib.IntTrap(rmesh,@. ψ[:]^2)
-	ans+=0.5*rmesh[1]*ψ[1]^2 #add between r=0~rmesh[1]
+	ans+=0.5*ψ[1]^2 #add between r=0~rmesh[1]
     ans=sqrt(ans)
     return ans
 end
@@ -883,7 +883,6 @@ end
 
 ##################################################
 function SpatialInt(rmesh,y::Vector{Float64})
-	rmesh=getrmesh()
 	ans=MyLib.IntTrap(rmesh, (@. y[:]*rmesh[:]^2))*4*π
 	if rmesh[1]!=0
 		ans+=4*π*rmesh[1]^2*y[1]
@@ -934,9 +933,9 @@ end
 function Energy_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
 	rmesh=getrmesh()
     Hl=Hamiltonian_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
-    #En=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hl[:]))*4*π
-    En=SpatialInt(rmesh,Hl)
-    return En
+    #El=MyLib.IntTrap(rmesh,(@. rmesh[:]^2*Hl[:]))*4*π
+    El=SpatialInt(rmesh,Hl)
+    return El
 end
 
 function H_coul_dir(ρp,rmesh,Z)
@@ -987,7 +986,7 @@ function Energy_CM_dir(AN,τ3)
     Λ=AN.Λ
     for b in 1:3
         #Ecm_dir += MyLib.IntTrap(rmesh,@. rmesh[:]^2*τ3[b,:])*4*π
-        Ecm_dir += En=SpatialInt(rmesh,τ3[b,:])
+        Ecm_dir +=SpatialInt(rmesh,τ3[b,:])
     end
     Ecm_dir*=ħc^2/(2*(mpMeV*Z + mnMeV*N + mΛMeV*Λ))
     return Ecm_dir
@@ -1034,7 +1033,7 @@ function Energy_N_R(aN,σ,ρ3,ρN)
 	@. Hn_R += aN[3]*ρN[:]^(σ+2)
     @. Hn_R += aN[4]*ρN[:]^σ*(ρ3[1,:]^2 + ρ3[2,:]^2)
 	#En_R=0.5*σ*MyLib.IntTrap(rmesh,@. rmesh[:]^2*Hn_R[:])*4*π
-    En_R=0.5*σ*SpatialInt(rmesh,Hn_R)*4*π
+    En_R=0.5*σ*SpatialInt(rmesh,Hn_R)
 
     En_R+=-1.0/3.0*Energy_coul_exch(ρ3[1,:])
 

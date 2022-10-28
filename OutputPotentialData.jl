@@ -43,9 +43,9 @@ function OutputPotentialData(LParamType::Int)
 	Uopt_mom(kL)=Uopt(ρ0_Kohno/2.0,ρ0_Kohno/2.0,kL,aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4)
 	U_mom=Uopt_mom.(kmesh)
 
-	rm("data/Potential_$(LParamType)",force=true,recursive=true)
-    mkpath("data/Potential_$(LParamType)")
-    cd("data/Potential_$(LParamType)")
+	rm("data/Potential/Potental_$(LParamType)",force=true,recursive=true)
+    mkpath("data/Potential/Potential_$(LParamType)")
+    cd("data/Potential/Potential_$(LParamType)")
 
 	io1=open("DensityDep_$(LParamType).csv","w")
 	write(io1,"density,U\n")
@@ -62,7 +62,7 @@ function OutputPotentialData(LParamType::Int)
 	close(io2)
 
 
-	cd("../..")
+	cd("../../..")
 end
 
 for i in 1:46

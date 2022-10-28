@@ -50,11 +50,11 @@ function run_threads()
 	#LParamType=[35,39,40,41,-1]
 
 	#Lanskoy and Yamamoto
-	#NParamType="SK3"
-	#LParamType=[9,26,-1]
+	NParamType="SK3"
+	LParamType=[9,26,-1]
 
-	NParamType="SLy4"
-	LParamType=1:46
+	#NParamType="SLy4"
+	#LParamType=1:46
 	@threads for i=eachindex(LParamType)
 		run(NParamType,LParamType[i])
 	end
