@@ -14,7 +14,7 @@ using DataFrames
     ρ0_Kohno=0.166
 	ρ0_GKW=0.16
 
-    NumberOfParams=46
+    NumberOfParams=50
 end
 
 function getkfq(ρq)

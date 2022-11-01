@@ -159,7 +159,7 @@ function Outputa3()
 	a3Lam_ans=zeros(Float64,length(index))
 	BE_13LamC=zeros(Float64,length(index))
 	@threads for i=eachindex(index)
-		a3Lam_ans[i],BE_13LamC[i]=tune_a3Lam(AN,ExpBE,NParamType=NParamType,LParamType=i)
+		a3Lam_ans[i],BE_13LamC[i]=tune_a3Lam(AN,ExpBE,NParamType=NParamType,LParamType=index[i])
 	end
 
 	io1=open("a3.csv","w")
