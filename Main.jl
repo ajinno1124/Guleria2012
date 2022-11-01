@@ -648,6 +648,7 @@ function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType,α=0.5)
 
     #plot()
     #calc several params
+
     for i in 1:MaxIter
         #for debug
         #ρptest[i,:]=Calc_ρ(Oldocc[1],OldStates[1],rmesh)
@@ -659,8 +660,10 @@ function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType,α=0.5)
         Newρ3,Newdρ3,NewLapρ3,Newτ3,NewJ3,NewdivJ3=Calc_Density(Newocc,NewStates)
 
         if CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh)==true
-            return Newocc,NewStates
+            return Newocc,NewStates,true
             break
+		elseif i==MaxIter
+			return Newocc,NewStates,false
         end
         println(i)
         OldStates=NewStates
@@ -682,8 +685,15 @@ end
 
 ############################################
 # out put files
+# return -1 when HF iteration does not converge.
+# return 1 when HF iteration converge.
 function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType, α=0.5)
-    Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50,α=α)
+    Ansocc,AnsStates,Check=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=20,α=α)
+
+	if Check==false
+		println("HF iteration does not converge.")
+		return -1
+	end
 
     Z=AN.Z
     N=AN.N
@@ -714,6 +724,8 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType, α=0.5)
 	end
     #cd("../..")
 	print("\n")
+
+	return 1
 end
 
 function WriteHeader(io::IOStream,AN,NParamType,LParamType_str)

@@ -1,7 +1,7 @@
 include("Main.jl")
 using .Threads
 
-function run(NParamType,LParamType)
+function run(NParamType,LParamType,io1)
     ZN=[
 		[2,5],
 		[3,5],
@@ -32,10 +32,18 @@ function run(NParamType,LParamType)
 		println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 
 		#if ZN[i][1]==57 || ZN[i][1]==20
-			OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.1)
+			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.1)
 		#else
 			#OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType)
 		#end
+
+		if Check==false
+			write(io1,"$(AN.Z)")
+			write(io1,",$(AN.N)")
+			write(io1,",$(AN.Λ)")
+			write(io1,",$(NParamType)")
+			write(io1,",$(LParamType)\n")
+		end
     end
 
 end
@@ -65,10 +73,16 @@ function run_threads()
 
 	#run all
 	NParamType="SLy4"
-	LParamType=26:-1:1
+	LParamType=1:26
+
+	io1=open("NotConverge.csv","w")
+	write(io1,"Z,N,L,NParamType,LParamType\n")
+
 	@threads for i=eachindex(LParamType)
-		run(NParamType,LParamType[i])
+		run(NParamType,LParamType[i],io1)
 	end
+
+	close(io1)
 end
 
 @time run_threads()
