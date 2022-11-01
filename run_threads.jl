@@ -31,11 +31,11 @@ function run(NParamType,LParamType)
 
 		println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 
-		if ZN[i][1]==57 || ZN[i][1]==20
+		#if ZN[i][1]==57 || ZN[i][1]==20
 			OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.1)
-		else
-			OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType)
-		end
+		#else
+			#OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType)
+		#end
     end
 
 end
@@ -60,8 +60,12 @@ function run_threads()
 	#NParamType="SLy4"
 	#LParamType=47:50
 
+	#NParamType="SLy4"
+	#LParamType=21:25
+
+	#run all
 	NParamType="SLy4"
-	LParamType=21:25
+	LParamType=26:-1:1
 	@threads for i=eachindex(LParamType)
 		run(NParamType,LParamType[i])
 	end
