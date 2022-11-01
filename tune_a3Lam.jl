@@ -1,5 +1,10 @@
 include("Main.jl")
+using CSV
+using DataFrames
+using .Threads
 
+#want to use the same method used in Main.jl
+#can be the cause of bugs
 function HF_iter_for_a3(AN::AtomNum,aN,aL,pN,pL;MaxIter=15,α=0.5)
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
@@ -134,9 +139,39 @@ function tune_a3Lam(AN::AtomNum,ExpBE;NParamType,LParamType)
 		println("No solution for a3Lam is found.")
 	end
 
-	println("a3Lam_ans = $(a3Lam_ans)")
+	#BE_13LamC=EnergyDiff(a3Lam_ans,Etot_core,AN,aN,aL,pN,pL,GivenBE)
+	BE_13LamC=LamBindingEnergy(a3Lam_ans,Etot_core,AN,aN,aL,pN,pL)
+
+	return a3Lam_ans,BE_13LamC
 
 end
 
-AN=AtomNum(6,6,1)
-@time tune_a3Lam(AN,11.88,NParamType="SLy4",LParamType=33)
+#AN=AtomNum(6,6,1)
+#@time tune_a3Lam(AN,11.88,NParamType="SLy4",LParamType=33)
+
+function Outputa3()
+	df=DataFrame(CSV.File("Lambda Parameters.csv"))
+	index=[32,33,42,43]
+
+	AN=AtomNum(6,6,1)
+	ExpBE=11.88 #MeV, Hashimoto & Tamura, Gogami
+	NParamType="SLy4"
+	a3Lam_ans=zeros(Float64,length(index))
+	BE_13LamC=zeros(Float64,length(index))
+	@threads for i=eachindex(index)
+		a3Lam_ans[i],BE_13LamC[i]=tune_a3Lam(AN,ExpBE,NParamType=NParamType,LParamType=i)
+	end
+
+	io1=open("a3.csv","w")
+	write(io1,"index,Parameter Name,a3,BE(13LamC)(MeV),BE-11.88MeV\n")
+	for i=eachindex(index)
+		write(io1,"$(df[index[i],"index"])")
+		write(io1,",$(df[index[i],"Parameter Name"])")
+		write(io1,",$(a3Lam_ans[i])")
+		write(io1,",$(BE_13LamC[i])") #calculate again
+		write(io1,",$(BE_13LamC[i]-11.88)\n")
+	end
+	close(io1)
+end
+
+@time Outputa3()

@@ -8,7 +8,7 @@ import pylab as pl
 from pylab import *
 import cmath
 
-isMD=False
+isMD=True
 
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['lines.linewidth'] = 2
@@ -44,8 +44,8 @@ if isMD==False:
 	ax.plot(d8_dense["density"],d8_dense["U"],label="GKW2 $u<1.5$ Fit",linewidth=1,color='darkgreen',linestyle='-')
 	ax.plot(d9_dense["density"],d9_dense["U"],label="GKW3 $u<1.5$ Fit",linewidth=1.9,color='red',linestyle='-')
 elif isMD==True:
-	ax.plot(d10_dense["density"],d10_dense["U"],label="GKW2 $u<1.5$ + Kohno2 $k<1$/fm",linewidth=1.1,color='darkgreen',linestyle='--')
-	ax.plot(d11_dense["density"],d11_dense["U"],label="GKW3 $u<1.5$ + Kohno3 $k<1$/fm",linewidth=2.0,color='red',linestyle='--')
+	ax.plot(d10_dense["density"],d10_dense["U"],label="GKW2 $u<1.5$ + Kohno2 $k<1.5$/fm",linewidth=1.1,color='darkgreen',linestyle='--')
+	ax.plot(d11_dense["density"],d11_dense["U"],label="GKW3 $u<1.5$ + Kohno3 $k<1.5$/fm",linewidth=2.0,color='red',linestyle='--')
 
 #ax.plot(d1_dense["density"],d1_dense["U"],label="GKW2 Fit",linewidth=1.9,color='tab:brown',linestyle=':')
 #ax.plot(d2_dense["density"],d2_dense["U"],label="GKW3 Fit",linewidth=2.2,color='red',linestyle='-')
