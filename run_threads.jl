@@ -32,7 +32,7 @@ function run(NParamType,LParamType,io1)
 		println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 
 		#if ZN[i][1]==57 || ZN[i][1]==20
-			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.1)
+			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.5)
 		#else
 			#OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType)
 		#end
@@ -73,7 +73,7 @@ function run_threads()
 
 	#run all
 	NParamType="SLy4"
-	LParamType=1:26
+	LParamType=1:50
 
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")
