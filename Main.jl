@@ -692,7 +692,7 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType, α=0.5)
 
 	if Check==false
 		println("HF iteration does not converge.")
-		return -1
+		return false
 	end
 
     Z=AN.Z
@@ -725,7 +725,7 @@ function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType, α=0.5)
     #cd("../..")
 	print("\n")
 
-	return 1
+	return true
 end
 
 function WriteHeader(io::IOStream,AN,NParamType,LParamType_str)

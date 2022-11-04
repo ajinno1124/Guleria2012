@@ -31,12 +31,12 @@ function run(NParamType,LParamType,io1)
 
 		println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 
-		#if ZN[i][1]==57 || ZN[i][1]==20
-			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.5)
-		#else
-			#OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType)
-		#end
-
+		if ZN[i][1]==57 || ZN[i][1]==20
+			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.1)
+		else
+			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType)
+		end
+		println(Check)
 		if Check==false
 			write(io1,"$(AN.Z)")
 			write(io1,",$(AN.N)")
