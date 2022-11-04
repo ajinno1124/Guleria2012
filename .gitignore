@@ -29,5 +29,6 @@ Manifest.toml
 /data/
 *.pdf
 *.png
+*.zip
 
 Hoge*
