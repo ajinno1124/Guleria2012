@@ -45,7 +45,7 @@ function Make_BindingEnergyLamData(NParamType,LParamType)
     end
 
     close(io1)
-    
+
 end
 
 #1/Nd*\sum(B_exp-B_th)^2/\sigma
@@ -64,7 +64,7 @@ function Make_ChiSquaredData(index::Array{1,Int64})
     io1=open("data/BindingEnergyLam/ChiSquared.csv","w")
 
     for i in index
-        
+
     end
 
 

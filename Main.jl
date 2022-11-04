@@ -235,9 +235,10 @@ function RadWaveFunc(E,QN::QuantumNumber,A,C,rmesh)
         R[i-1]=Numerov6(ψvec,fvec,-h)
     end
     #R[Nmatch:Nmesh]/=R[Nmatch]
-	for i in Nmatch:Nmesh
+	for i in Nmatch+1:Nmesh
 		R[i]/=R[Nmatch]
 	end
+	R[Nmatch]/=R[Nmatch]
 
     @. R[:]*=(-A[:])^(-0.5)
 
