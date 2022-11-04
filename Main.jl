@@ -179,14 +179,18 @@ function WronskyEuler(E,QN::QuantumNumber,A,C,rmesh)
     Rin[3:5],Rout[1:3]=BoundCond(QN,E,A,C,rmesh)
 
     for i in 3:Nmatch+1
-        Rin[1:4]=Rin[2:5]
+		for n in 1:4
+        	Rin[n]=Rin[n+1]
+		end
         ψvec=[Rin[3],Rin[4]]
         fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]]
         Rin[5]=Numerov6(ψvec,fvec,h)
     end
 
     for i in Nmesh-2:-1:Nmatch-1
-        Rout[2:5]=Rout[1:4]
+		for n in 5:-1:2
+        	Rout[n]=Rout[n-1]
+		end
         ψvec=[Rout[3],Rout[2]]
         fvec=[(C[i+1]-E)/A[i+1], (C[i]-E)/A[i], (C[i-1]-E)/A[i-1]]
         Rout[1]=Numerov6(ψvec,fvec,-h)
@@ -218,14 +222,20 @@ function RadWaveFunc(E,QN::QuantumNumber,A,C,rmesh)
         fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]]
         R[i+1]=Numerov6(ψvec,fvec,h)
     end
-    R[1:Nmatch]/=R[Nmatch]
+    #R[1:Nmatch]/=R[Nmatch]
+	for i in 1:Nmatch
+		R[i]/=R[Nmatch]
+	end
 
     for i in Nmesh-2:-1:Nmatch+1
         ψvec=[R[i+1],R[i]]
         fvec=[(C[i+1]-E)/A[i+1], (C[i]-E)/A[i], (C[i-1]-E)/A[i-1]]
         R[i-1]=Numerov6(ψvec,fvec,-h)
     end
-    R[Nmatch:Nmesh]/=R[Nmatch]
+    #R[Nmatch:Nmesh]/=R[Nmatch]
+	for i in Nmatch:Nmesh
+		R[i]/=R[Nmatch]
+	end
 
     @. R[:]*=(-A[:])^(-0.5)
 
@@ -239,10 +249,11 @@ function CalcStates(QN::QuantumNumber,h2mB,dh2mB,ddh2mB,VB,WB,rmesh)
     States=SingleParticleState[]
 
     A,C=CalcABC(QN,h2mB,dh2mB,ddh2mB,VB,WB,rmesh)
-    Erange=-100.0:0.0 #In BCS approx., E>0 state also needs to be calculated.
+    Erange=-100.0:5:0.0 #In BCS approx., E>0 state also needs to be calculated.
     args=[QN,A,C,rmesh]
 
     for i in 1:(length(Erange)-1)
+		# This may be the bottleneck
         Eans=MyLib.MyBisect(Erange[i],Erange[i+1],WronskyEuler,args,rtol=1e-6) #WronskyEuler(E,QN::QuantumNumber,A,B,C,rmesh)
         if isnan(Eans)==true
             continue
