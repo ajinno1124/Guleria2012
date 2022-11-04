@@ -179,6 +179,7 @@ function WronskyEuler(E,QN::QuantumNumber,A,C,rmesh)
     Rin[3:5],Rout[1:3]=BoundCond(QN,E,A,C,rmesh)
 
     for i in 3:Nmatch+1
+		#Rin[1:4]=Rin[2:5]
 		for n in 1:4
         	Rin[n]=Rin[n+1]
 		end
@@ -188,6 +189,7 @@ function WronskyEuler(E,QN::QuantumNumber,A,C,rmesh)
     end
 
     for i in Nmesh-2:-1:Nmatch-1
+		#Rout[2:5]=Rout[1:4]
 		for n in 5:-1:2
         	Rout[n]=Rout[n-1]
 		end
