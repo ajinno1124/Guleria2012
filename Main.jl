@@ -632,7 +632,7 @@ function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
 
 end
 
-function HF_iter(AN::AtomNum;MaxIter=15,NParamType="SLy4",LParamType,α=0.5)
+function HF_iter(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType,α=0.5)
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
     rmesh=getrmesh()
@@ -687,8 +687,8 @@ end
 # out put files
 # return -1 when HF iteration does not converge.
 # return 1 when HF iteration converge.
-function OutPutFiles(AN::AtomNum;NParamType="SLy4",LParamType, α=0.5)
-    Ansocc,AnsStates,Check=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=20,α=α)
+function OutPutFiles(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType, α=0.5)
+    Ansocc,AnsStates,Check=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=MaxIter,α=α)
 
 	if Check==false
 		println("HF iteration does not converge.")

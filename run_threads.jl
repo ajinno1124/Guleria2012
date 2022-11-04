@@ -36,7 +36,7 @@ function run(NParamType,LParamType,io1)
 		else
 			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType)
 		end
-		println(Check)
+		#println(Check)
 		if Check==false
 			write(io1,"$(AN.Z)")
 			write(io1,",$(AN.N)")
@@ -73,7 +73,8 @@ function run_threads()
 
 	#run all
 	NParamType="SLy4"
-	LParamType=1:50
+	#LParamType=1:50
+	LParamType=-1
 
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")
@@ -85,11 +86,33 @@ function run_threads()
 	close(io1)
 end
 
+function run_NotConverge()
+	df=DataFrame(CSV.File("NotConverge.csv"))
+
+	ListNotConverge=ones(Float64,nrow(df))
+	
+	@threads for i in 1:nrow(df)
+		Z=df[i,"Z"]
+		N=df[i,"N"]
+		L=df[i,"L"]
+		#NParamType=df[i,"NParamType"]
+		NParamType="SLy4"
+		LParamType=df[i,"LParamType"]
+		AN=AtomNum(Z,N,L)
+
+		println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
+
+		Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.05,MaxIter=50)
+		
+		if Check==false
+			ListNotConverge[i]=0
+		end
+
+	end
+
+	println(ListNotConverge)
+
+end
+
 @time run_threads()
-#=
-run("SLy4",38)
-run("SLy4",37)
-run("SLy4",36)
-run("SLy4",33)
-run("SLy4",-1)
-=#
+#@time run_NotConverge()
