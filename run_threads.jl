@@ -73,8 +73,8 @@ function run_threads()
 
 	#run all
 	NParamType="SLy4"
-	LParamType=1:50
-	#LParamType=-1
+	LParamType=1:25
+	LParamType=vcat(LParamType,47:50)
 
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")
@@ -102,7 +102,7 @@ function run_NotConverge()
 
 		println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 
-		Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.05,MaxIter=50)
+		Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.1,MaxIter=100)
 
 		if Check==false
 			ListNotConverge[i]=0
@@ -110,9 +110,11 @@ function run_NotConverge()
 
 	end
 
-	println(ListNotConverge)
+	for i in 1:nrow(df)
+		println("$i,$(ListNotConverge[i])")
+	end
 
 end
 
 @time run_threads()
-#@time run_NotConverge()
+@time run_NotConverge()
