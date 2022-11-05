@@ -85,7 +85,7 @@ function ChiSquared3(B_exp::Vector{Float64},B_th::Vector{Float64})
 		end
 	end
 	χ3/=count
-	return χ3
+	return χ3,count
 end
 
 function LineupBindingEnergy(df_exp,df_th)
@@ -120,9 +120,9 @@ function Calc_ChiSquared(df_exp,df_th)
 	B_exp,B_exp_error,B_th=LineupBindingEnergy(df_exp,df_th)
 	χ1=ChiSquared1(B_exp,B_exp_error,B_th)
 	χ2=ChiSquared2(B_exp,B_th)
-	χ3=ChiSquared3(B_exp,B_th)
+	χ3,count=ChiSquared3(B_exp,B_th)
 
-	return χ1,χ2,χ3
+	return χ1,χ2,χ3,count
 end
 
 function Make_ChiSquaredData(index::Array{Int64,1},df_ParamType)
@@ -131,18 +131,20 @@ function Make_ChiSquaredData(index::Array{Int64,1},df_ParamType)
 	write(io1,"#ChiSquare1 = 1/Nd*sum(B_exp-B_th)^2/sigma\n")
 	write(io1,"#ChiSquare2 = 1/Nd*sum(B_exp-B_th)^2)/1MeV^2\n")
 	write(io1,"#ChiSquare3 = sum(B_exp-B_th)^2/B_exp^2\n")
-	write(io1,"NParamType,LParameterType,ChiSquare1,ChiSquare2,ChiSquare3\n")
+	write(io1,"index,NParamType,LParameterType,ChiSquare1,ChiSquare2,ChiSquare3,Number of Data\n")
 
 	df_exp=DataFrame(CSV.File("LamBindingEnergy.csv",comment="#"))
-    for i in index
-		LParamType_str=df_ParamType[i,"Parameter Name"]
+    for i=eachindex(index)
+		LParamType_str=df_ParamType[index[i],"Parameter Name"]
 		df_th=DataFrame(CSV.File("data/BindingEnergyLam/BindingEnergy$(LParamType_str).csv",comment="#"))
-		χ1,χ2,χ3=Calc_ChiSquared(df_exp,df_th)
-		write(io1,"SLy4") #20221105 only use SLy4
+		χ1,χ2,χ3,count=Calc_ChiSquared(df_exp,df_th)
+		write(io1,"$(index[i])")
+		write(io1,",SLy4") #20221105 only use SLy4
 		write(io1,",$(df_ParamType[i,"Parameter Name"])")
 		write(io1,",$(χ1)")
 		write(io1,",$(χ2)")
-		write(io1,",$(χ3)\n")
+		write(io1,",$(χ3)")
+		write(io1,",$(count)\n")
     end
 
 	close(io1)
