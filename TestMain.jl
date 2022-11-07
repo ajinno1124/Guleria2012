@@ -121,10 +121,10 @@ function TestDensity()
 
 end
 
-function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
-    AN=AtomNum(82,125,1)
+function TestHFiter(;AN=AtomNum(82,125,1),NParamType="SLy4",LParamType="HPL2",α=0.5)
+    #AN=AtomNum(82,125,1)
     #AN=AtomNum(82,126,1)
-    Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50)
+    Ansocc,AnsStates=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=50,α=α)
     b=3
     for i=eachindex(AnsStates[b])
         occ=Ansocc[b][i]
@@ -179,7 +179,7 @@ function TestHFiter(;NParamType="SLy4",LParamType="HPL2")
     #plot!(rmesh,ρ3[1,:],label="proton")
     #plot!(rmesh,ρ3[2,:],label="neutron")
     #plot!(rmesh,ρ3[3,:],label="Λ")
-    #plot!(rmesh,VNp,label="VNp")
+    plot!(rmesh,VNp,label="VNp")
     plot!(rmesh,VΛΛ,label="VΛΛ",xlim=(0,10))
     #plot!(rmesh,VΛN,label="VΛN",xlim=(0,10))
     #plot!(rmesh,Vcoul,label="Vcoul")

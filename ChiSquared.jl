@@ -140,7 +140,7 @@ function Make_ChiSquaredData(index::Array{Int64,1},df_ParamType)
 		χ1,χ2,χ3,count=Calc_ChiSquared(df_exp,df_th)
 		write(io1,"$(index[i])")
 		write(io1,",SLy4") #20221105 only use SLy4
-		write(io1,",$(df_ParamType[i,"Parameter Name"])")
+		write(io1,",$(df_ParamType[index[i],"Parameter Name"])")
 		write(io1,",$(χ1)")
 		write(io1,",$(χ2)")
 		write(io1,",$(χ3)")
@@ -156,7 +156,8 @@ function ExecuteAll()
 
     df=DataFrame(CSV.File("Lambda Parameters.csv"))
     #index=1:50
-	index=vcat(1:25,47:50)
+	#index=vcat(1:25,47:50)
+	index=vcat(1:20,47:50)
     for i in index
         LParamType_str=df[i,"Parameter Name"]
         Make_BindingEnergyLamData("SLy4",LParamType_str)
