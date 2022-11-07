@@ -67,11 +67,12 @@ function ChiSquared2(B_exp::Vector{Float64},B_th::Vector{Float64})
 	count=0.0
 	for i in 1:length(B_exp)
 		if isnan(B_th[i])==false
-			χ2+=(B_exp[i]-B_th[i])^2/1.0^2
+			χ2+=(B_exp[i]-B_th[i])^2
 			count+=1.0
 		end
 	end
 	χ2/=count
+	χ2=χ2^0.5
 	return χ2
 end
 #\sum(B_exp-B_th)^2/B_exp^2
@@ -88,6 +89,24 @@ function ChiSquared3(B_exp::Vector{Float64},B_th::Vector{Float64})
 	return χ3,count
 end
 
+function FindBELam(Z,N,lLam,df_th)
+	B_th=0.0
+	for n in 1:nrow(df_th)
+		if [Z,N,lLam]==[df_th[n,"Z"],df_th[n,"N"],df_th[n,"lLam"]]
+			#if Z!=57
+				B_th=df_th[n,"B.E Lambda(MeV)"]
+				break
+			#end
+		end
+	end
+	if B_th==0.0
+		B_th=NaN
+		println("No Binding Energy of Lambda was found.")
+	end
+
+	return B_th
+end
+
 function LineupBindingEnergy(df_exp,df_th)
 	B_exp=df_exp[:,"B. E. (MeV)"]
 	B_exp_error=df_exp[:,"error(MeV)"]
@@ -98,52 +117,121 @@ function LineupBindingEnergy(df_exp,df_th)
 		N=df_exp[i,"Core N"]
 		lLam=df_exp[i,"lLam"]
 
-		for n in 1:nrow(df_th)
-			if [Z,N,lLam]==[df_th[n,"Z"],df_th[n,"N"],df_th[n,"lLam"]]
-				if Z!=57
-					B_th[i]=df_th[n,"B.E Lambda(MeV)"]
-					break
-				end
-			end
-		end
-
-		if B_th[i]==0.0
-			B_th[i]=NaN
-		end
+		B_th[i]=FindBELam(Z,N,lLam,df_th)
 
 	end
 
 	return B_exp,B_exp_error,B_th
 end
 
+function BE_swave(df_exp,df_th)
+	B_exp_s=Float64[]
+	B_exp_error_s=Float64[]
+	B_th_s=Float64[]
+	for i in 1:nrow(df_exp)
+		if df_exp[i,"lLam"]==0
+			push!(B_exp_s,df_exp[i,"B. E. (MeV)"])
+			push!(B_exp_error_s,df_exp[i,"error(MeV)"])
+
+			Z=df_exp[i,"Core Z"]
+			N=df_exp[i,"Core N"]
+			lLam=df_exp[i,"lLam"]
+
+			push!(B_th_s,FindBELam(Z,N,lLam,df_th))
+		end
+	end
+
+	return B_exp_s,B_exp_error_s,B_th_s
+
+end
+
+function BE_sp_splitting(df_exp,df_th)
+	B_exp_sp=Float64[]
+	B_exp_error_sp=Float64[]
+	B_th_sp=Float64[]
+	for i in 1:nrow(df_exp)
+		if df_exp[i,"lLam"]==0
+			Z=df_exp[i,"Core Z"]
+			N=df_exp[i,"Core N"]
+
+			for k in 1:nrow(df_exp)
+				if [Z,N,1]==[df_exp[k,"Core Z"],df_exp[k,"Core N"],df_exp[k,"lLam"]]
+					push!(B_exp_sp,df_exp[i,"B. E. (MeV)"]-df_exp[k,"B. E. (MeV)"])
+					push!(B_exp_error_sp,(df_exp[i,"error(MeV)"]^2+df_exp[k,"error(MeV)"]^2)^0.5)
+
+					push!(B_th_sp,FindBELam(Z,N,0,df_th)-FindBELam(Z,N,1,df_th))
+				end
+			end
+		end
+	end
+
+	return B_exp_sp,B_exp_error_sp,B_th_sp
+end
+
+function BE_Heavier13C(df_exp,df_th)
+	B_exp_13C=Float64[]
+	B_exp_error_13C=Float64[]
+	B_th_13C=Float64[]
+	for i in 1:nrow(df_exp)
+		if df_exp[i,"Core A"]>13
+			push!(B_exp_13C,df_exp[i,"B. E. (MeV)"])
+			push!(B_exp_error_13C,df_exp[i,"error(MeV)"])
+
+			Z=df_exp[i,"Core Z"]
+			N=df_exp[i,"Core N"]
+			lLam=df_exp[i,"lLam"]
+
+			push!(B_th_13C,FindBELam(Z,N,lLam,df_th))
+		end
+	end
+
+	return B_exp_13C,B_exp_error_13C,B_th_13C
+end
+
 function Calc_ChiSquared(df_exp,df_th)
 	B_exp,B_exp_error,B_th=LineupBindingEnergy(df_exp,df_th)
+	B_exp_s,B_exp_error_s,B_th_s=BE_swave(df_exp,df_th)
+	B_exp_sp,B_exp_error_sp,B_th_sp=BE_sp_splitting(df_exp,df_th)
+	B_exp_13C,B_exp_error_13C,B_th_13C=BE_Heavier13C(df_exp,df_th)
 	χ1=ChiSquared1(B_exp,B_exp_error,B_th)
 	χ2=ChiSquared2(B_exp,B_th)
 	χ3,count=ChiSquared3(B_exp,B_th)
+	χ4=ChiSquared2(B_exp_s,B_th_s)
+	χ5=ChiSquared2(B_exp_sp,B_th_sp)
+	χ6=ChiSquared2(B_exp_13C,B_th_13C)
 
-	return χ1,χ2,χ3,count
+	return χ1,χ2,χ3,χ4,χ5,χ6,count
 end
 
-function Make_ChiSquaredData(index::Array{Int64,1},df_ParamType)
+function Make_ChiSquaredData(index::Array{Int64,1},df_ParamType,df_JLK)
     io1=open("data/BindingEnergyLam/ChiSquared.csv","w")
 
 	write(io1,"#ChiSquare1 = 1/Nd*sum(B_exp-B_th)^2/sigma\n")
-	write(io1,"#ChiSquare2 = 1/Nd*sum(B_exp-B_th)^2)/1MeV^2\n")
+	write(io1,"#ChiSquare2 = sqrt(1/Nd*sum(B_exp-B_th)^2)^2) MeV\n")
 	write(io1,"#ChiSquare3 = sum(B_exp-B_th)^2/B_exp^2\n")
-	write(io1,"index,NParamType,LParameterType,ChiSquare1,ChiSquare2,ChiSquare3,Number of Data\n")
+	write(io1,"#ChiSquare4 = ChiSquare2 using only s-wave")
+	write(io1,"#ChiSquare5 = ChiSquare2 using only s-p splitting\n")
+	write(io1,"#ChiSquare6 = ChiSquare2 using only heavyer than 13C_Lam\n")
+	write(io1,"index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare1,ChiSquare2,ChiSquare3,ChiSquare4,ChiSquare5,ChiSquare6,Number of Data\n")
 
 	df_exp=DataFrame(CSV.File("LamBindingEnergy.csv",comment="#"))
     for i=eachindex(index)
 		LParamType_str=df_ParamType[index[i],"Parameter Name"]
 		df_th=DataFrame(CSV.File("data/BindingEnergyLam/BindingEnergy$(LParamType_str).csv",comment="#"))
-		χ1,χ2,χ3,count=Calc_ChiSquared(df_exp,df_th)
+		χ1,χ2,χ3,χ4,χ5,χ6,count=Calc_ChiSquared(df_exp,df_th)
 		write(io1,"$(index[i])")
 		write(io1,",SLy4") #20221105 only use SLy4
 		write(io1,",$(df_ParamType[index[i],"Parameter Name"])")
+		write(io1,",$(df_JLK[index[i],"J (MeV)"])")
+		write(io1,",$(df_JLK[index[i],"L (MeV)"])")
+		write(io1,",$(df_JLK[index[i],"K (MeV)"])")
+		write(io1,",$(df_JLK[index[i],"m*/m"])")
 		write(io1,",$(χ1)")
 		write(io1,",$(χ2)")
 		write(io1,",$(χ3)")
+		write(io1,",$(χ4)")
+		write(io1,",$(χ5)")
+		write(io1,",$(χ6)")
 		write(io1,",$(count)\n")
     end
 
@@ -162,7 +250,8 @@ function ExecuteAll()
         LParamType_str=df[i,"Parameter Name"]
         Make_BindingEnergyLamData("SLy4",LParamType_str)
     end
-    Make_ChiSquaredData(index,df)
+	df2=DataFrame(CSV.File("JLK.csv"))
+    Make_ChiSquaredData(index,df,df2)
 end
 
 @time ExecuteAll()

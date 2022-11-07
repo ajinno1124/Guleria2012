@@ -14,28 +14,39 @@ plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['text.usetex'] = False
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
+plt.rc('text.latex', preamble=r'\usepackage{braket}')
 
 d1=pd.read_csv('../JLK.csv',comment='#')
 d2=pd.read_csv('../data/BindingEnergyLam/ChiSquared.csv',comment='#')
+d3=d2[d2["ChiSquare2"]<1.5]
+#d3=d2.query("ChiSquare2 < 3")
+#print(d3["index"])
 
-J=np.zeros(len(d2))
-L=np.zeros(len(d2))
-K=np.zeros(len(d2))
-ms_m=np.zeros(len(d2))
+#J=np.zeros(len(d3))
+#L=np.zeros(len(d3))
+#K=np.zeros(len(d3))
+#ms_m=np.zeros(len(d3))
 
-for i in range(len(d2)):
-	#Delete KIDS
+#for index in d3["index"]:
+	#Delete KIDS\
 	#if i<=20 and i>=26:
-	J[i]=d1["J (MeV)"][d2["index"][i]-1]
-	L[i]=d1["L (MeV)"][d2["index"][i]-1]
-	K[i]=d1["K (MeV)"][d2["index"][i]-1]
-	ms_m[i]=d1["m*/m"][d2["index"][i]-1]
+	#if d3["ChiSquare2"][i]<3:
+	#J[i]=d1["J (MeV)"][index-1]
+	#L[i]=d1["L (MeV)"][index-1]
+	#K[i]=d1["K (MeV)"][index-1]
+	#ms_m[i]=d1["m*/m"][index-1]
 
 fig=plt.figure()
 subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
 ax = subplot(1,1,1)
 
-ax.scatter(J,L,c=d2["ChiSquare2"])
+#ax.scatter(J,ms_m,c=d3["ChiSquare2"])
+#ax.scatter(J,ms_m,c=d2["ChiSquare3"])
+plt.scatter(d1["J (MeV)"][d3["index"]-1],d1["L (MeV)"][d3["index"]-1],c=d3["ChiSquare2"],cmap=plt.cm.jet,s=30,edgecolor='k')
+cbar=plt.colorbar(aspect=40,pad=0.08,orientation='vertical')
+cbar.set_label(r"$< (B_{\Lambda,exp}-B_{\Lambda,HF})^2 >^{1/2}$",fontsize=14)
+#cbar.set_label(r"$\Braket{B_{\Lambda,exp}-B_{\Lambda,HF}}$".format('B'))
+#cbar.set_label("mean deviation squared")
 #cax=plt.axes([0.85,0.1,0.075,0.8])
 #plt.colorbar(cax=cax)
 
@@ -44,8 +55,8 @@ ax.scatter(J,L,c=d2["ChiSquare2"])
 #ax.text(0.5,-15,'$^{208}_\Lambda$Pb',{'color':'k','fontsize':14})
 
 ax.legend(loc='upper left',frameon=0,numpoints=1,fontsize=14)
-#ax.set_xlim(0,10)
-#ax.set_ylim(-32,0)
+ax.set_xlim(-33,-26)
+ax.set_ylim(-100,20)
 #plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
 ax.set_xlabel(r'$J$ (MeV)',fontsize=16)
 ax.set_ylabel(r'$L$ (MeV)',fontsize=16)
