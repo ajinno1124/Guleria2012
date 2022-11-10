@@ -44,8 +44,8 @@ a2=ax.scatter(xdata,ydata-ydata[0],marker='s',s=15,label='Kohno2', color="black"
 #b1=ax.plot(d3_mom["k"],d3_mom["Um"],label=r"MD1",linewidth=2,color='darkorange',ls='-.')
 #b2=ax.plot(d4_mom["k"],d4_mom["Um"],label=r"MD2",linewidth=2,color='m',ls='--')
 #b3=ax.plot(d5_mom["k"],d5_mom["Um"],label=r"MD3",linewidth=2,color='darkgreen')
-b1=ax.plot(d12_mom["k"],d12_mom["Um"]-d12_mom["Um"][0],label=r"Kohno2 ($k<1.5$/fm)",linewidth=1,color='darkgreen',ls='-')
-b2=ax.plot(d13_mom["k"],d13_mom["Um"]-d13_mom["Um"][0],label=r"Kohno3 ",linewidth=1.9,color='r',ls='-')
+b1=ax.plot(d12_mom["k"],d12_mom["Um"]-d12_mom["Um"][0],label=r"Kohno2 ($k<1.5$/fm) Fit",linewidth=1,color='darkgreen',ls='-')
+b2=ax.plot(d13_mom["k"],d13_mom["Um"]-d13_mom["Um"][0],label=r"Kohno3 ($k<1.5$/fm) Fit",linewidth=1.9,color='r',ls='-')
 #b4=ax.plot(d6_mom["k"],d6_mom["Um"]-d6_mom["Um"][0],label=r"HPL2",linewidth=2,color='tab:cyan',ls=":")
 b5=ax.plot(d7_mom["k"],d7_mom["Um"]-d7_mom["Um"][0],label=r"LY1",linewidth=2,color='k',ls=":")
 
