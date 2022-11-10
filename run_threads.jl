@@ -11,12 +11,14 @@ function run(NParamType,LParamType,io1)
 		[5,6],
         [6,5],
 		[6,6],
-		[7,8],
+		[6,7],
+		[7,8],# not included in Ohnishi-san's File
         [8,7],
         [14,13],
 		[16,15],
 		[20,19],
         [23,27],
+		[26,29],
         [39,49],
         [57,81],
         [82,125]
@@ -75,6 +77,11 @@ function run_threads()
 	NParamType="SLy4"
 	LParamType=vcat(-1,1:25,47:50)
 
+	#benchmark
+	#NParamType="SLy4"
+	#LParamType=1:16
+	#LParamType=-1
+
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")
 
@@ -88,7 +95,7 @@ end
 function run_NotConverge()
 	df=DataFrame(CSV.File("NotConverge.csv"))
 
-	ListNotConverge=ones(Float64,nrow(df))
+	ListNotConverge=zeros(Float64,nrow(df))
 
 	@threads for i in 1:nrow(df)
 		Z=df[i,"Z"]
@@ -101,10 +108,13 @@ function run_NotConverge()
 
 		println("\nZ=$(AN.Z), N=$(AN.N), L=$(AN.Λ)")
 
-		Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=0.01,MaxIter=100)
-
-		if Check==false
-			ListNotConverge[i]=0
+		α=[0.09,0.08,0.07,0.06]
+		for j=eachindex(α)
+			Check=OutPutFiles(AN,NParamType=NParamType,LParamType=LParamType,α=α[j],MaxIter=100)
+			if Check==true
+				ListNotConverge[i]=1.0
+				break
+			end
 		end
 
 	end
@@ -115,5 +125,5 @@ function run_NotConverge()
 
 end
 
-#@time run_threads()
+@time run_threads()
 @time run_NotConverge()

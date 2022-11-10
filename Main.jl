@@ -647,6 +647,7 @@ function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
 end
 
 function HF_iter(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType,α=0.5)
+    @assert α>0.05
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
     rmesh=getrmesh()
@@ -674,11 +675,17 @@ function HF_iter(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType,α=0.5)
         Newρ3,Newdρ3,NewLapρ3,Newτ3,NewJ3,NewdivJ3=Calc_Density(Newocc,NewStates)
 
         if CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh)==true
-            return Newocc,NewStates,true
-            break
-		elseif i==MaxIter
-			return Newocc,NewStates,false
+            #if i<=10 #Avoid too fast convergence
+            #    return Newocc,NewStates,false
+            #    break
+            #else
+                return Newocc,NewStates,true
+                break
+            #end
+        elseif i==MaxIter
+            return Newocc,NewStates,false
         end
+
         println(i)
         OldStates=NewStates
         Oldocc=Newocc
@@ -729,7 +736,7 @@ function OutPutFiles(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType, α=0.5
     mkpath("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     #cd("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+    #WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
     WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	if Λ==1
         WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
