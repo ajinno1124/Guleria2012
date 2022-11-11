@@ -218,31 +218,32 @@ function RadWaveFunc(E,QN::QuantumNumber,A,C,rmesh)
 
     R=zeros(Float64,Nmesh)
     R[1:3],R[Nmesh-2:Nmesh]=BoundCond(QN,E,A,C,rmesh)
+    #Condin,Condout=BoundCond(QN,E,A,C,rmesh)
 
-    for i in 3:Nmatch-1
-        ψvec=[R[i-1],R[i]]
-        fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]]
+    for i in 3:Nmatch-1 #64 allocation
+        ψvec=[R[i-1],R[i]] #1 allocation
+        fvec=[(C[i-1]-E)/A[i-1], (C[i]-E)/A[i], (C[i+1]-E)/A[i+1]] #1 allocation
         R[i+1]=Numerov6(ψvec,fvec,h)
     end
     #R[1:Nmatch]/=R[Nmatch]
-	for i in 1:Nmatch
+	for i in 1:Nmatch #No allocation
 		R[i]/=R[Nmatch]
 	end
 
-    for i in Nmesh-2:-1:Nmatch+1
-        ψvec=[R[i+1],R[i]]
-        fvec=[(C[i+1]-E)/A[i+1], (C[i]-E)/A[i], (C[i-1]-E)/A[i-1]]
+    for i in Nmesh-2:-1:Nmatch+1 #226 allocation
+        ψvec=[R[i+1],R[i]] #1 allocation
+        fvec=[(C[i+1]-E)/A[i+1], (C[i]-E)/A[i], (C[i-1]-E)/A[i-1]] #1 allocation
         R[i-1]=Numerov6(ψvec,fvec,-h)
     end
     #R[Nmatch:Nmesh]/=R[Nmatch]
-	for i in Nmatch+1:Nmesh
+	for i in Nmatch+1:Nmesh #No allocation
 		R[i]/=R[Nmatch]
 	end
 	R[Nmatch]/=R[Nmatch]
 
     @. R[:]*=(-A[:])^(-0.5)
 
-    Norm=NormFactor(rmesh,R)
+    Norm=NormFactor(rmesh,R) #2 allocation
     R*=sign(R[2]-R[1])/Norm
 
     return R

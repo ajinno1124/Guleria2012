@@ -78,7 +78,11 @@ function TotalEnergyHYP(Ansocc,AnsStates,AN::AtomNum,aN,aL,pN,pL)
 	El_R=Energy_L_R(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN)
 	Epair=Energy_Pair()
 	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
-	Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+	if  length(AnsStates[3])>=1
+		Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+	else
+		Etot=NaN
+	end
 
 	return Etot
 end
@@ -102,13 +106,14 @@ end
 function EnergyDiff(a3Lam,Etot_core,AN::AtomNum,aN,aL,pN,pL,GivenBE)
 	BELam=LamBindingEnergy(a3Lam,Etot_core,AN,aN,aL,pN,pL)
 
-	println("Binding Energy of Lambda for a3Lam=$(a3Lam) is $(BELam) MeV")
+	#println("Binding Energy of Lambda for a3Lam=$(a3Lam) is $(BELam) MeV")
 
 	return BELam-GivenBE
 end
 
 function tune_a3Lam(AN::AtomNum,ExpBE;NParamType,LParamType)
-	a3Lam=-10:10:200 #possible value of a3Lam
+	#a3Lam=-10:10:200 #possible value of a3Lam
+	a3Lam=-10:50:190
 	a3Lam_ans=NaN
 
 	aN=NuclParameters.getaN(NParamType)
@@ -151,7 +156,12 @@ end
 
 function Outputa3()
 	df=DataFrame(CSV.File("Lambda Parameters.csv"))
-	index=[32,33,42,43]
+	#index=vcat([32,33,42,43],51:1562)
+	#index=vcat([32,33,42,43],51:300)
+	#index=240:248
+	#index=301:1200
+	index=1201:1562
+	#index=1
 
 	AN=AtomNum(6,6,1)
 	ExpBE=11.88 #MeV, Hashimoto & Tamura, Gogami
@@ -159,7 +169,9 @@ function Outputa3()
 	a3Lam_ans=zeros(Float64,length(index))
 	BE_13LamC=zeros(Float64,length(index))
 	@threads for i=eachindex(index)
+		println("index = $(index[i])")
 		a3Lam_ans[i],BE_13LamC[i]=tune_a3Lam(AN,ExpBE,NParamType=NParamType,LParamType=index[i])
+		println("index = $(index[i]), a3Lam_ans=$(a3Lam_ans[i]), BE_13LamC=$(BE_13LamC[i])")
 	end
 
 	io1=open("a3.csv","w")

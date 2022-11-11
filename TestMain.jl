@@ -73,7 +73,7 @@ function TestInitialCondition()
         E=InitState[b][i].E
         println("(occ,l,j,E)=($occ,$l,$j,$E)")
     end
-    
+
     #proton波動関数をプロット
     plot(xlabel="r", ylabel="R", title="Initial Proton Wave Function")
     rmesh=getrmesh()
