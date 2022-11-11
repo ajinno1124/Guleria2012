@@ -74,13 +74,15 @@ function run_threads()
 	#LParamType=21:25
 
 	#run all
-	NParamType="SLy4"
-	LParamType=vcat(-1,1:25,47:50)
+	#NParamType="SLy4"
+	#LParamType=vcat(-1,1:25,47:50)
 
 	#benchmark
 	#NParamType="SLy4"
 	#LParamType=1:16
 	#LParamType=-1
+	NParamType="SLy4"
+	LParamType=vcat(-1,1:1562)
 
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")
@@ -126,4 +128,4 @@ function run_NotConverge()
 end
 
 @time run_threads()
-@time run_NotConverge()
+#@time run_NotConverge()

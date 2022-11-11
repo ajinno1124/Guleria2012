@@ -733,12 +733,12 @@ function OutPutFiles(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType, α=0.5
     pN=NuclParameters.getParams(NParamType)
     pL=LambdaParameters.getParams(LParamType)
 
-    rm("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)",force=true,recursive=true)
-    mkpath("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
-    #cd("data/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
+    rm("data/$(NParamType)$(LParamType_str)/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)",force=true,recursive=true)
+    mkpath("data/$(NParamType)$(LParamType_str)/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
+    #cd("data/$(LParamType_str)/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
     #WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
+    #WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	if Λ==1
         WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	elseif Λ==0
@@ -776,7 +776,7 @@ function WriteHeader(io::IOStream,AN,NParamType)
 end
 
 function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    io=open("data/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/states.csv","w")
+    io=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/states.csv","w")
 
     rmesh=getrmesh()
     WriteHeader(io,AN,NParamType,LParamType_str)
@@ -800,7 +800,7 @@ function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType,LParamTy
 end
 
 function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    io=open("data/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/wavefunc.csv","w")
+    io=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/wavefunc.csv","w")
 	WriteHeader(io,AN,NParamType,LParamType_str)
 	rmesh=getrmesh()
 
@@ -833,7 +833,7 @@ function WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
 end
 
 function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
-    io1=open("data/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/density.csv","w")
+    io1=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/density.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
     WriteHeader(io1,AN,NParamType,LParamType_str)
@@ -895,7 +895,7 @@ function WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_st
 
     close(io1)
 
-    io2=open("data/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/potential.csv","w")
+    io2=open("data/$(NParamType)$(LParamType_str)//Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/potential.csv","w")
     WriteHeader(io2,AN,NParamType,LParamType)
 
     write(io2, "r(fm)")
@@ -1099,7 +1099,7 @@ function Energy_N_SPS(Ansocc,AnsStates)
 end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
-    io1=open("data/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/Energy.csv","w")
+    io1=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/Energy.csv","w")
 	write(io1,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
 	WriteHeader(io1,AN,NParamType,LParamType_str)
     rmesh=getrmesh()
@@ -1152,7 +1152,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 
 	#=
 	#check Energy of Lambda
-	io2=open("data/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/check_Energy_Lam.csv","w")
+	io2=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/check_Energy_Lam.csv","w")
 	write(io2,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
 	write(io2,"#Etot1=Single Particle Energy\n")
 	write(io2,"#Etot2=0.5*(E_kin + E_Total_SPS) - El_R)\n\n")
@@ -1192,7 +1192,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
-    io1=open("data/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy.csv","w")
+    io1=open("data/$(NParamType)NaN/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
@@ -1233,7 +1233,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	close(io1)
 
     #using single-particle energy and rearrangement energy
-	io2=open("data/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy2.csv","w")
+	io2=open("data/$(NParamType)NaN/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy2.csv","w")
     WriteHeader(io2,AN,NParamType)
 
 	E_Kin=Energy_N_Kin(AN,τ3)
