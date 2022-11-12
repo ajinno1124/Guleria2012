@@ -1123,11 +1123,19 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
 	El_R=Energy_L_R(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN)
 	Epair=Energy_Pair()
+    Etot=0.0
+    El_check=0.0
 	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
-	Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
-	#El_check=AnsStates[3][1].E- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
-    El=Energy_L(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
-    El_check=El- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+    if length(AnsStates[3])>0
+        Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+        #El_check=AnsStates[3][1].E- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+        El=Energy_L(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+        El_check=El- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+    else
+        Etot=NaN
+        El_check=NaN
+    end
+	
 
 	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),En_Kin(MeV),En_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
 
