@@ -1,4 +1,4 @@
-Nuclei,Core Z,Core N,Core A,orbital,B. E. (MeV),error(MeV),Paper,Exp. name,
+Nuclei,Core Z,Core N,Core A,lLam,B. E. (MeV),error(MeV),Paper,Exp. name,
 8He_Lam,2,5,7,0,7.16,0.7,"Bando, Motoba and Zofka (1990)",,
 9Li_Lam,3,5,8,0,8.5,0.12,"Bando, Motoba and Zofka (1990)",,
 10Be_Lam,4,5,9,0,9.11,0.22,"Bando, Motoba and Zofka (1990)",,
@@ -7,11 +7,11 @@ Nuclei,Core Z,Core N,Core A,orbital,B. E. (MeV),error(MeV),Paper,Exp. name,
 12B_Lam,5,6,11,0,11.37,0.06,"Bando, Motoba and Zofka (1990)",,
 12C_Lam,6,5,11,0,10.76,0.19,"Bando, Motoba and Zofka (1990)",,
 13C_Lam,6,6,12,0,11.88,0.12,Hashimoto and Tamura (2006),,0.5 MeV is added to SE(s)
-15N_Lam???,7,7,14,0,13.59,0.15,"Bando, Motoba and Zofka (1990)",,
-16N_Lam???,7,8,15,0,13.76,0.16,Cusanno et al. (2009),,
-16N_Lam???,7,8,15,1,2.84,0.16,,,
-16O_Lam,8,7,15,0,12.5,0.35,,,error?
-16O_Lam,8,7,15,1,1.85,0.05,,,error?
+#15N_Lam???,7,7,14,0,13.59,0.15,"Bando, Motoba and Zofka (1990)",,
+#16N_Lam???,7,8,15,0,13.76,0.16,Cusanno et al. (2009),,
+#16N_Lam???,7,8,15,1,2.84,0.16,,,
+16O_Lam,8,7,15,0,12.92,0.35,,,error? HTの方が良い？
+16O_Lam,8,7,15,1,2.35,0.05,,,error? HTの方が良い？
 28Si_Lam,14,13,27,0,16.6,0.2,,,Bandoと違う…
 28Si_Lam,14,13,27,1,7,0.2,,,Bandoと違う…
 32S_Lam,16,15,31,0,17.5,0.5,"Bando, Motoba and Zofka (1990), Bertini et al. (1979)",,

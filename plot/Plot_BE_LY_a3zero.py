@@ -25,6 +25,7 @@ def BindingEnergyL(NParamType,LParamType):
 		[16,15],
 		[20,19],
         [23,27],
+		[26,29],
         [39,49],
         [57,81],
         [82,125]
@@ -35,8 +36,8 @@ def BindingEnergyL(NParamType,LParamType):
 	f.write('A,Z,N,jLam,lLam,B.E Lambda(MeV),EL_check(MeV)\n')
 
 	for i in range(len(AN)):
-		df1=pd.read_csv(f"../data/Z{AN[i][0]}N{AN[i][1]}L0_{NParamType}NaN/Energy2.csv",comment="#")
-		df2=pd.read_csv(f"../data/Z{AN[i][0]}N{AN[i][1]}L1_{NParamType}{LParamType}/Energy.csv",comment="#")
+		df1=pd.read_csv(f"../data/{NParamType}NaN/Z{AN[i][0]}N{AN[i][1]}L0_{NParamType}NaN/Energy2.csv",comment="#")
+		df2=pd.read_csv(f"../data/{NParamType}{LParamType}/Z{AN[i][0]}N{AN[i][1]}L1_{NParamType}{LParamType}/Energy.csv",comment="#")
 		l=0
 		for n in range(len(df2)):
 			if df2["lLam"][n]==l:
@@ -51,15 +52,17 @@ def BindingEnergyL(NParamType,LParamType):
 
 	f.close()
 
-BindingEnergyL("SK3","LY1")
-BindingEnergyL("SK3","LY1_a3zero")
+#BindingEnergyL("SK3","LY1")
+#BindingEnergyL("SK3","LY1_a3zero")
+BindingEnergyL("SLy4","LY1")
+BindingEnergyL("SLy4","LY1_a3zero")
 
 ################################################3
 # main plot process
 
 #plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['text.usetex'] = True
+plt.rcParams['text.usetex'] = False
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
@@ -67,7 +70,7 @@ fig=plt.figure()
 subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
 ax = subplot(1,1,1)
 
-df_data=pd.read_csv("LamBindingEnergy.csv")
+df_data=pd.read_csv("../LamBindingEnergy.csv",comment="#")
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='o',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10)
 
 def Plot_OnePot(LParamType,color,fmt,linewidth):
