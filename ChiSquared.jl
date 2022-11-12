@@ -26,8 +26,8 @@ function Make_BindingEnergyLamData(NParamType,LParamType)
     write(io1,"A,Z,N,jLam,lLam,B.E Lambda(MeV),EL_check(MeV)\n")
 
     for i=eachindex(ZN)
-        df1=DataFrame(CSV.File("data/Z$(ZN[i][1])N$(ZN[i][2])L0_$(NParamType)NaN/Energy2.csv",comment="#"))
-        df2=DataFrame(CSV.File("data/Z$(ZN[i][1])N$(ZN[i][2])L1_$(NParamType)$(LParamType)/Energy.csv",comment="#"))
+        df1=DataFrame(CSV.File("data/$(NParamType)NaN/Z$(ZN[i][1])N$(ZN[i][2])L0_$(NParamType)NaN/Energy2.csv",comment="#"))
+        df2=DataFrame(CSV.File("data/$(NParamType)$(LParamType)/Z$(ZN[i][1])N$(ZN[i][2])L1_$(NParamType)$(LParamType)/Energy.csv",comment="#"))
         l=0
         for n in 1:nrow(df2)
             if df2[n,"lLam"]==l
@@ -203,7 +203,7 @@ function Calc_ChiSquared(df_exp,df_th)
 	return χ1,χ2,χ3,χ4,χ5,χ6,count
 end
 
-function Make_ChiSquaredData(index::Array{Int64,1},df_ParamType,df_JLK)
+function Make_ChiSquaredData(index,df_ParamType,df_JLK)
     io1=open("data/BindingEnergyLam/ChiSquared.csv","w")
 
 	write(io1,"#ChiSquare1 = 1/Nd*sum(B_exp-B_th)^2/sigma\n")
@@ -245,7 +245,8 @@ function ExecuteAll()
     df=DataFrame(CSV.File("Lambda Parameters.csv"))
     #index=1:50
 	#index=vcat(1:25,47:50)
-	index=vcat(1:20,47:50)
+	#index=vcat(1:20,47:50)
+	index=1:1562
     for i in index
         LParamType_str=df[i,"Parameter Name"]
         Make_BindingEnergyLamData("SLy4",LParamType_str)

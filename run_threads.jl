@@ -127,5 +127,5 @@ function run_NotConverge()
 
 end
 
-@time run_threads()
-#@time run_NotConverge()
+#@time run_threads()
+@time run_NotConverge()
