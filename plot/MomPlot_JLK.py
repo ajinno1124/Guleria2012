@@ -43,7 +43,7 @@ a2=ax.scatter(xdata,ydata-ydata[0],marker='s',s=15,label='Kohno2', color="black"
 #for i in np.arange(51,1563):
 for i in np.arange(51,3578):
     df=pd.read_csv(f'../data/Potential/Potential_{i}/MomentumDep_{i}.csv')
-    ax.plot(df["k"],df["Um"]-df["Um"][0],linewidth=1,color='k',ls='-')
+    ax.plot(df["k"],df["Um"]-df["Um"][0],color=(0,0,1,0.05),linestyle='-',linewidth=0.5)
 
 
 #b1=ax.plot(d3_mom["k"],d3_mom["Um"],label=r"MD1",linewidth=2,color='darkorange',ls='-.')
