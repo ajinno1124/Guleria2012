@@ -65,6 +65,6 @@ function OutputPotentialData(LParamType::Int)
 	cd("../../..")
 end
 
-for i in 1:1562
+for i in 1:3578
 	OutputPotentialData(i)
 end

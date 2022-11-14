@@ -40,7 +40,8 @@ ydata=df2_dat[df2_dat.k<2.5].Um
 a2=ax.scatter(xdata,ydata-ydata[0],marker='s',s=15,label='Kohno2', color="black")
 #a2=ax.plot(xdata,ydata-ydata[0],label=r'Kohno2',linewidth=3.5, color="black",ls='--')
 
-for i in np.arange(51,1563):
+#for i in np.arange(51,1563):
+for i in np.arange(51,3578):
     df=pd.read_csv(f'../data/Potential/Potential_{i}/MomentumDep_{i}.csv')
     ax.plot(df["k"],df["Um"]-df["Um"][0],linewidth=1,color='k',ls='-')
 

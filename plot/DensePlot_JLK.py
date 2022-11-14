@@ -38,7 +38,8 @@ df4=pd.read_csv('../Fitting Parameters/Givendata/SNM3BF_upper.csv')
 ax.fill(np.append(df1["density"],df2["density"][::-1]),np.append(df1["U"],df2["U"][::-1]),label="GKW2",color=(0,0,0,0.08),edgecolor='black')
 ax.fill(np.append(df3["density"],df4["density"][::-1]),np.append(df3["U"],df4["U"][::-1]),label="GKW3",color=(1,0,0,0.08),edgecolor='black')
 
-for i in np.arange(51,1563):
+#for i in np.arange(51,1563):
+for i in np.arange(51,3578):
 	df=pd.read_csv(f'../data/Potential/Potential_{i}/DensityDep_{i}.csv')
 	ax.plot(df["density"],df["U"],color='k',linestyle='-')	
 
