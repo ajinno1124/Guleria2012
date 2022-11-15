@@ -160,7 +160,8 @@ function Outputa3()
 	#index=vcat([32,33,42,43],51:300)
 	#index=240:248
 	#index=301:1200
-	index=1201:1562
+	#index=1201:1562
+	index=1563:3578
 	#index=1
 
 	AN=AtomNum(6,6,1)
