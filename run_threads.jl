@@ -3,6 +3,7 @@ using .Threads
 
 function run(NParamType,LParamType,io1)
     ZN=[
+		#=
 		[2,5],
 		[3,5],
 		[4,5],
@@ -10,6 +11,7 @@ function run(NParamType,LParamType,io1)
 		[5,5],
 		[5,6],
         [6,5],
+		=#
 		[6,6],
 		[6,7],
 		[7,8],# not included in Ohnishi-san's File
@@ -81,8 +83,10 @@ function run_threads()
 	#NParamType="SLy4"
 	#LParamType=1:16
 	#LParamType=-1
+	#NParamType="SLy4"
+	#LParamType=vcat(-1,1:1562)
 	NParamType="SLy4"
-	LParamType=vcat(-1,1:1562)
+	LParamType=1563:3578
 
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")
@@ -127,5 +131,5 @@ function run_NotConverge()
 
 end
 
-#@time run_threads()
+@time run_threads()
 @time run_NotConverge()
