@@ -11,27 +11,15 @@ import cmath
 # create BindingEnergyLY.csv
 def BindingEnergyL(NParamType,LParamType):
 	ZN=np.array([
-		[2,2],
-		[6,6],
-		[6,7],
-		[7,8],# not included in Ohnishi-san's File
-        [8,7],
+		#[2,2],
 		[8,8],
-        [14,13],
-		[16,15],
-		[20,19],
 		[20,20],
 		[20,28], #> 5.8E22 y
-        [23,27],
 		[28,28], #6.075 d 10
-		[26,29],
-		[28,50], #122.2 ms 51
-        [39,49],
+		#[28,50], #122.2 ms 51
 		[50,50], #1.16 s 20
 		[50,82], #39.7 s 8
-        [57,81],
-        [82,125],
-		[82,126] #Stable
+		[82,126], #Stable
 	])
 
 	f=open(f'BindingEnergy{NParamType}{LParamType}.csv','w',encoding="utf-8")
@@ -74,6 +62,7 @@ subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
 ax = subplot(1,1,1)
 
 df_data=pd.read_csv("../../LamBindingEnergy.csv",comment="#")
+df_data=df_data[df_data["Core A"]>=12]
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='o',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10)
 
 def Plot_OnePot(NParamType,LParamType,color,fmt,linewidth):
@@ -84,25 +73,24 @@ def Plot_OnePot(NParamType,LParamType,color,fmt,linewidth):
 	d3=df[df["lLam"]==3]
 	d4=df[df["lLam"]==4]
 	d5=df[df["lLam"]==5]
-
 	#print(d1_pot.head)
 
-	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],fmt,label=f"{NParamType}, {LParamType}",c=color,lw=linewidth,ms=3.5,fillstyle='none')
-	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
-	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
-	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
-	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
-	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=3.5,fillstyle='none')
+	ax.plot(d0["A"]**(-2/3),d0["B.E Lambda(MeV)"],fmt,label=f"{NParamType}, {LParamType}",c=color,lw=linewidth,ms=5,fillstyle='none')
+	ax.plot(d1["A"]**(-2/3),d1["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=5,fillstyle='none')
+	ax.plot(d2["A"]**(-2/3),d2["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=5,fillstyle='none')
+	ax.plot(d3["A"]**(-2/3),d3["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=5,fillstyle='none')
+	ax.plot(d4["A"]**(-2/3),d4["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=5,fillstyle='none')
+	ax.plot(d5["A"]**(-2/3),d5["B.E Lambda(MeV)"],fmt,c=color,lw=linewidth,ms=5,fillstyle='none')
 
-Plot_OnePot("SLy4","LY1",'b','o-',0.7)
-Plot_OnePot("SK3","LY1",'r','s-',0.7)
+Plot_OnePot("SLy4","LY1",'b','o-',1)
+Plot_OnePot("SK3","LY1",'r','s-',1)
 
 
 #ax.text(0.1,28,r'SK3',{'color':'k','fontsize':14})
 #ax.text(0.1,26,r'LY1',{'color':'k','fontsize':14})
 
 ax.legend(loc='upper right',frameon=0,numpoints=1,fontsize=14)
-ax.set_xlim(0.0,0.30)
+ax.set_xlim(0.0,0.25)
 ax.set_ylim(-2,30)
 #plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
 ax.set_ylabel('$B_\Lambda $ (MeV)',fontsize=16)
@@ -115,8 +103,8 @@ ax.tick_params(axis='y', which='both',left='true',right='true', direction='in',l
 #ax.set_yticks([-50,0,50,100,200,300])
 #ax.tick_params(labelsize=12)
 
-plt.savefig("CompareMagic_LY.pdf",dpi=300)
-plt.savefig("CompareMagic_LY.png",dpi=300)
+plt.savefig("CompareMagicLY.pdf",dpi=300)
+plt.savefig("CompareMagicLY.png",dpi=300)
 plt.show()
 
 #指定可能なファイル形式は emf, eps, jpeg, jpg, pdf, png, ps, raw, rgba, svg,
