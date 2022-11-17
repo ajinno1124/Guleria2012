@@ -17,14 +17,14 @@ plt.rcParams['figure.subplot.bottom'] = 0.15
 plt.rc('text.latex', preamble=r'\usepackage{braket}')
 
 #d1=pd.read_csv('../JLK.csv',comment='#')
-d1=pd.read_csv('../data/BindingEnergyLam/ChiSquared.csv',comment='#')
-df=d1[d1["Number of Data"]==31.0]
+d1=pd.read_csv('../../data/BindingEnergyLam/ChiSquared.csv',comment='#')
+df=d1[d1["Number of Data"]==25.0]
 df=df[df["index"]>50]
 #print(df.head(),len(df))
 
 J_mesh=np.array([-33,-32,-31,-30,-29,-28,-27])
 L_mesh=np.array([-50,-40,-30,-20,-10,0,10,20])
-K_mesh=np.array([0,300,600])
+K_mesh=np.array([0,100,200,300,400,500,600])
 ms_m_mesh=np.array([0.6,0.65,0.7,0.75,0.8,0.85,0.90,0.95,1.00])
 
 f=open('LK_best.csv','w',encoding="utf-8")

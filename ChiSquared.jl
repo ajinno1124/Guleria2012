@@ -210,12 +210,14 @@ function Make_ChiSquaredData(index,df_ParamType,df_JLK)
     io1=open("data/BindingEnergyLam/ChiSquared.csv","w")
 
 	write(io1,"#ChiSquare1 = 1/Nd*sum(B_exp-B_th)^2/sigma\n")
-	write(io1,"#ChiSquare2 = sqrt(1/Nd*sum(B_exp-B_th)^2)^2) MeV\n")
+	write(io1,"#ChiSquare2 = sqrt(1/Nd*sum(B_exp-B_th)^2)) MeV, Mean Squared Deviation\n")
 	write(io1,"#ChiSquare3 = sum(B_exp-B_th)^2/B_exp^2\n")
-	write(io1,"#ChiSquare4 = ChiSquare2 using only s-wave")
+	write(io1,"#ChiSquare4 = ChiSquare2 using only s-wave\n")
 	write(io1,"#ChiSquare5 = ChiSquare2 using only s-p splitting\n")
+	write(io1,"#Use data heavier than 13C_Lam\n")
 	write(io1,"#ChiSquare6 = ChiSquare2 using only heavyer than 13C_Lam\n")
 	write(io1,"index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare1,ChiSquare2,ChiSquare3,ChiSquare4,ChiSquare5,ChiSquare6,Number of Data\n")
+	#write(io1,"index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare1,ChiSquare2,ChiSquare3,ChiSquare4,ChiSquare5,Number of Data\n")
 
 	df_exp=DataFrame(CSV.File("LamBindingEnergy.csv",comment="#"))
     for i=eachindex(index)
@@ -241,6 +243,63 @@ function Make_ChiSquaredData(index,df_ParamType,df_JLK)
 	close(io1)
 end
 
+#=
+function getmesh(index)
+	@assert index==1 || index==2 || index==3 || index==4
+	if index==1
+		mesh=[-33.0,-32.0,-31.0,-30.0,-29.0,-28.0,-27.0]
+	elseif index==2
+		mesh=[-50.0,-40.0,-30.0,-20.0,-10.0,0.0,10.0,20.0]
+	elseif index==3
+		mesh=[0.0,100.0,200.0,300.0,400.0,500.0,600.0]
+	elseif index==4
+		mesh=[0.6,0.65,0.7,0.75,0.8,0.85,0.90,0.95,1.00]
+	end
+
+	return mesh
+end
+
+function getkey(index)
+
+end
+
+function SelectBest(df_best)
+	rm("data/BindingEnergyLam/ChiBest",force=true,recursive=true)
+    mkpath("data/BindingEnergyLam/ChiBest")
+
+	#1:J, 2:L, 3:K, 4:m
+	key=["J", "L","K","m"]
+	for i in 1:4
+		for j in i+1:4
+			io1=open("data/BindingEnergyLam/ChiBest/$(key[i])$(key[j])_best.csv","w")
+			write(io1,"#ChiSquare1 = 1/Nd*sum(B_exp-B_th)^2/sigma\n")
+			write(io1,"#ChiSquare2 = sqrt(1/Nd*sum(B_exp-B_th)^2)) MeV, Mean Squared Deviation\n")
+			write(io1,"#ChiSquare3 = sum(B_exp-B_th)^2/B_exp^2\n")
+			write(io1,"#ChiSquare4 = ChiSquare2 using only s-wave\n")
+			write(io1,"#ChiSquare5 = ChiSquare2 using only s-p splitting\n")
+			write(io1,"#Use data heavier than 13C_Lam\n")
+			#write(io1,"#ChiSquare6 = ChiSquare2 using only heavyer than 13C_Lam\n")
+			#write(io1,"index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare1,ChiSquare2,ChiSquare3,ChiSquare4,ChiSquare5,ChiSquare6,Number of Data\n")
+			write(io1,"index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare1,ChiSquare2,ChiSquare3,ChiSquare4,ChiSquare5,Number of Data\n")
+
+			mesh_i=getmesh(i)
+			mesh_j=getmesh(j)
+			key_i=getkey(i)
+			key_j=getkey(j)
+			for val_i in mesh_i
+				for val_j in mesh_j
+					df_i=df_best[abs(df_best["J (MeV)"]-val_i).<0.01]
+					df_j=df_best[abs(df_best["J (MeV)"]-val_j).<0.01]
+				end
+			end
+
+			close(io1)
+		end
+	end
+	
+end
+=#
+
 function ExecuteAll()
     rm("data/BindingEnergyLam",force=true,recursive=true)
     mkpath("data/BindingEnergyLam")
@@ -257,6 +316,9 @@ function ExecuteAll()
     end
 	df2=DataFrame(CSV.File("JLK.csv"))
     Make_ChiSquaredData(index,df,df2)
+
+	#df3=DataFrame(CSV.File("data/BindingEnergyLam/ChiSquared.csv", comment="#"))
+	#SelectBest(df3)
 end
 
 @time ExecuteAll()
