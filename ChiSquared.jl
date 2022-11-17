@@ -2,20 +2,23 @@ using CSV, DataFrames
 
 function Make_BindingEnergyLamData(NParamType,LParamType)
     ZN=[
-		[2,5],
-		[3,5],
-		[4,5],
-		[5,4],
-		[5,5],
-		[5,6],
-        [6,5],
+		#[2,5],
+		#[3,5],
+		#[4,5],
+		#[5,4],
+		#[5,5],
+		#[5,6],
+        #[6,5],
+
 		[6,6],
-		[7,8],
+		[6,7],
+		[7,8],# not included in Ohnishi-san's File
         [8,7],
         [14,13],
 		[16,15],
 		[20,19],
         [23,27],
+		[26,29],
         [39,49],
         [57,81],
         [82,125]
@@ -246,7 +249,8 @@ function ExecuteAll()
     #index=1:50
 	#index=vcat(1:25,47:50)
 	#index=vcat(1:20,47:50)
-	index=1:1562
+	#index=1:1562
+	index=1:3578
     for i in index
         LParamType_str=df[i,"Parameter Name"]
         Make_BindingEnergyLamData("SLy4",LParamType_str)
