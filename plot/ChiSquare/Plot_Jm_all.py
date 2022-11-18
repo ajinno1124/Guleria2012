@@ -12,10 +12,11 @@ import cmath
 
 #plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['text.usetex'] = False
+#plt.rcParams['text.usetex'] = True
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
-plt.rc('text.latex', preamble=r'\usepackage{braket}')
+#plt.rc('text.latex', preamble=r'\usepackage{braket}')
+#plt.rc('text.latex', preamble=r'\usepackage{physics}')
 
 #d1=pd.read_csv('../JLK.csv',comment='#')
 d1=pd.read_csv('../../data/BindingEnergyLam/ChiSquared.csv',comment='#')
@@ -73,7 +74,7 @@ f.close()
 	#ms_m[i]=d1["m*/m"][index-1]
 
 #fig=plt.figure()
-subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
+#subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
 #ax = subplot(1,1,1)
 fig, ax=plt.subplots(subplot_kw={"projection":"3d"})
 
@@ -81,14 +82,24 @@ df_best=pd.read_csv('Jm_best.csv',comment='#')
 print(df_best.head())
 
 x_data,y_data=np.meshgrid(J_mesh,ms_m_mesh,indexing='ij')
-z_data=zeros([len(J_mesh),len(ms_m_mesh)])
+z_data=np.zeros([len(J_mesh),len(ms_m_mesh)])
 for i in range(0,len(J_mesh)):
 	for j in range(0,len(ms_m_mesh)):
-		z_data[i][j]=df_best[(abs(df_best["J (MeV)"]-J_mesh[i])<0.01) & (abs(df_best["m*/m"]-ms_m_mesh[j])<0.01)]
+		df_temp=df_best[abs(df_best["J (MeV)"]-J_mesh[i])<0.01]
+		df_temp=df_temp[abs(df_best["m*/m"]-ms_m_mesh[j])<0.01]
+		print(df_temp)
+		if len(df_temp)==0:
+			z_data[i][j]=np.nan
+		else:
+			z_data[i][j]=df_temp["ChiSquare6"][df_temp["ChiSquare6"].idxmin()]
 
-ax.plot_surface(x_data,y_data,z_data,cmap=cm.jet)
-ax.set_zlim(0,2)
-ax.set_zlabel("Mean Squared Deviation")
+
+#ax.plot_surface(x_data,y_data,z_data,cmap=cm.jet)
+ax.plot_wireframe(x_data,y_data,z_data,color="k")
+levels=[0.65,1.0,1.5,2.0]
+colors=['r','b','darkgreen','m']
+linestyles=['solid','dashed','dashdot','dotted']
+CS=ax.contour(x_data,y_data,z_data,levels=levels,linestyles=linestyles, colors=colors,labels=levels)
 
 #plt.scatter(df_best['J (MeV)'],df_best["m*/m"],c=df_best["ChiSquare6"],cmap=plt.cm.jet,s=30,edgecolor='k')
 #plt.scatter(d1["J (MeV)"][d3["index"]-1],d1["m*/m"][d3["index"]-1],c=d3["ChiSquare5"],cmap=plt.cm.jet,s=30,edgecolor='k')
@@ -104,16 +115,26 @@ ax.set_zlabel("Mean Squared Deviation")
 #ax.text(7,-25,r'GKW3(u<1.5)',{'color':'k','fontsize':14})
 #ax.text(0.5,-15,'$^{208}_\Lambda$Pb',{'color':'k','fontsize':14})
 
+plt.clabel(CS, inline=1, fontsize=10)
+plt.title('Simplest default with labels')
+
+labels = [f'{levels[0]}',f'{levels[1]}',f'{levels[2]}',f'{levels[3]}']
+for i in range(len(labels)):
+    CS.collections[i].set_label(labels[i])
+
 ax.legend(loc='upper left',frameon=0,numpoints=1,fontsize=14)
 ax.set_xlim(-34,-26)
 ax.set_ylim(0.55,1.05)
+ax.set_zlim(0,2)
 #plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
 ax.set_xlabel(r'$J_\Lambda$ (MeV)',fontsize=16)
 ax.set_ylabel(r'$m_\Lambda^*/m_\Lambda$',fontsize=16)
+#ax.set_zlabel(r'$\ev{(B_{\Lambda, {\rm exp}} - B_{\Lambda {\rm exp})^2}}^{1/2}$',fontsize=16)
 ax.tick_params(axis='x', which='both', direction='in',labelsize=14)
 ax.tick_params(axis='y', which='both', direction='in',labelsize=14)
+ax.tick_params(axis='z', which='both', direction='in',labelsize=14)
 plt.tight_layout()
-
+ax.view_init(azim=-126,elev=34)
 #ax.set_xticks([0,1,2,3,4,5])
 #ax.set_yticks([-50,0,50,100,200,300])
 #ax.tick_params(labelsize=12)
@@ -126,8 +147,8 @@ plt.tight_layout()
 
 #plt.savefig("v2ch.eps",format='eps',dpi=1000)
 #plt.savefig("pxe895qmdmsv.eps",format='eps',bbox__inches='tight')
-plt.savefig("Jm_Chi_all_best.pdf",dpi=300)
-plt.savefig("Jm_Chi_all_best.png",dpi=300)
+plt.savefig("Jm_best.pdf",dpi=300)
+plt.savefig("Jm_best.png",dpi=300)
 plt.show()
 
 #指定可能なファイル形式は emf, eps, jpeg, jpg, pdf, png, ps, raw, rgba, svg,
