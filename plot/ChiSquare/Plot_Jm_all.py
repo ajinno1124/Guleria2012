@@ -80,9 +80,11 @@ fig, ax=plt.subplots(subplot_kw={"projection":"3d"})
 df_best=pd.read_csv('Jm_best.csv',comment='#')
 print(df_best.head())
 
-x_data=J_mesh
-y_data=ms_m_mesh
-z_data=np.
+x_data,y_data=np.meshgrid(J_mesh,ms_m_mesh,indexing='ij')
+z_data=zeros([len(J_mesh),len(ms_m_mesh)])
+for i in range(0,len(J_mesh)):
+	for j in range(0,len(ms_m_mesh)):
+		z_data[i][j]=df_best[(abs(df_best["J (MeV)"]-J_mesh[i])<0.01) & (abs(df_best["m*/m"]-ms_m_mesh[j])<0.01)]
 
 ax.plot_surface(x_data,y_data,z_data,cmap=cm.jet)
 ax.set_zlim(0,2)
