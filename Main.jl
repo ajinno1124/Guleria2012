@@ -737,8 +737,8 @@ function OutPutFiles(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType, α=0.5
     mkpath("data/$(NParamType)$(LParamType_str)/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     #cd("data/$(LParamType_str)/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    #WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    #WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
+    WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	if Λ==1
         WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	elseif Λ==0
@@ -1128,14 +1128,16 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
     if length(AnsStates[3])>0
         Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
-        #El_check=AnsStates[3][1].E- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+        #El_check=AnsStates[3][1].E - (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+		#El_check=0.5*(E_L_Kin+AnsStates[3][1].E)-El_R
         El=Energy_L(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
-        El_check=El- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+        #El_check=El- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+		El_check=El- AnsStates[3][1].E
     else
         Etot=NaN
         El_check=NaN
     end
-	
+
 
 	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),En_Kin(MeV),En_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
 
