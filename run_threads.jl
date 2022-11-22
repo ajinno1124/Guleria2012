@@ -69,8 +69,8 @@ function run_threads()
 	#LParamType=1:46
 
 	#a3tuned params 2022/11/01
-	#NParamType="SLy4"
-	#LParamType=47:50
+	NParamType="SLy4"
+	LParamType=47:50
 
 	#NParamType="SLy4"
 	#LParamType=21:25
@@ -88,8 +88,8 @@ function run_threads()
 	#NParamType="SLy4"
 	#LParamType=1563:3578
 
-	NParamType="SLy4"
-	LParamType=vcat(-1,9)
+	#NParamType="SLy4"
+	#LParamType=vcat(-1,9)
 
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")

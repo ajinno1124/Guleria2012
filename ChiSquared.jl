@@ -1,3 +1,4 @@
+#20221122 using binding energy calculated by integrating hamiltonian
 using CSV, DataFrames
 
 function Make_BindingEnergyLamData(NParamType,LParamType)
@@ -24,23 +25,36 @@ function Make_BindingEnergyLamData(NParamType,LParamType)
         [82,125]
 	]
 
-    io1=open("data/BindingEnergyLam/BindingEnergy$(LParamType).csv","w")
+    io1=open("data/BindingEnergyLam/BindingEnergy$(NParamType)$(LParamType).csv","w")
     write(io1,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
-    write(io1,"A,Z,N,jLam,lLam,B.E Lambda(MeV),EL_check(MeV)\n")
+    #write(io1,"A,Z,N,jLam,lLam,B.E Lambda(MeV),EL_check(MeV)\n")
+	write(io1,"A,Z,N,jLam,lLam,BE_Int(MeV),BE_SPS(MeV),SP Energy(MeV),EL_check(MeV)\n")
 
     for i=eachindex(ZN)
-        df1=DataFrame(CSV.File("data/$(NParamType)NaN/Z$(ZN[i][1])N$(ZN[i][2])L0_$(NParamType)NaN/Energy2.csv",comment="#"))
-        df2=DataFrame(CSV.File("data/$(NParamType)$(LParamType)/Z$(ZN[i][1])N$(ZN[i][2])L1_$(NParamType)$(LParamType)/Energy.csv",comment="#"))
+        df1_Int=DataFrame(CSV.File("data/$(NParamType)NaN/Z$(ZN[i][1])N$(ZN[i][2])L0_$(NParamType)NaN/Energy_Int.csv",comment="#"))
+		df1_SPS=DataFrame(CSV.File("data/$(NParamType)NaN/Z$(ZN[i][1])N$(ZN[i][2])L0_$(NParamType)NaN/Energy_SPS.csv",comment="#"))
+        df2_Int=DataFrame(CSV.File("data/$(NParamType)$(LParamType)/Z$(ZN[i][1])N$(ZN[i][2])L1_$(NParamType)$(LParamType)/Energy_Int.csv",comment="#"))
+		df2_SPS=DataFrame(CSV.File("data/$(NParamType)$(LParamType)/Z$(ZN[i][1])N$(ZN[i][2])L1_$(NParamType)$(LParamType)/Energy_SPS.csv",comment="#"))
+		df3=DataFrame(CSV.File("data/$(NParamType)$(LParamType)/Z$(ZN[i][1])N$(ZN[i][2])L1_$(NParamType)$(LParamType)/states.csv",comment="#"))
         l=0
-        for n in 1:nrow(df2)
-            if df2[n,"lLam"]==l
+		@assert df2_Int[:,"lLam"]==df2_SPS[:,"lLam"]
+        for n in 1:nrow(df2_Int)
+            if df2_Int[n,"lLam"]==l
                 write(io1,"$(ZN[i][1]+ZN[i][2])")
                 write(io1,",$(ZN[i][1])")
                 write(io1,",$(ZN[i][2])")
-                write(io1,",$(df2[n,"jLam"])")
-                write(io1,",$(df2[n,"lLam"])")
-                write(io1,",$(-df2[n,"Etot(MeV)"]+df1[1,"Etot2(MeV)"])")
-                write(io1,",$(df2[n,"El_Check(MeV)"])\n")
+                write(io1,",$(df2_Int[n,"jLam"])")
+                write(io1,",$(df2_Int[n,"lLam"])")
+                write(io1,",$(-df2_Int[n,"Etot_Int(MeV)"]+df1_Int[1,"Etot_Int(MeV)"])")
+				write(io1,",$(-df2_SPS[n,"Etot_SPS(MeV)"]+df1_SPS[1,"Etot_SPS(MeV)"])")
+
+				for m in 1:nrow(df3)
+					if df3[m,"Baryon Type"]=="lambda" && l==df3[m,"l"]
+						write(io1,",$(-df3[m,"Energy(MeV)"])")
+						break
+					end
+				end
+				write(io1,",$(df2_SPS[n,"El_Check(MeV)"])\n")
                 l+=1
             end
         end
@@ -97,7 +111,8 @@ function FindBELam(Z,N,lLam,df_th)
 	for n in 1:nrow(df_th)
 		if [Z,N,lLam]==[df_th[n,"Z"],df_th[n,"N"],df_th[n,"lLam"]]
 			#if Z!=57
-				B_th=df_th[n,"B.E Lambda(MeV)"]
+				#B_th=df_th[n,"B.E Lambda(MeV)"]
+				B_th=df_th[n,"BE_Int(MeV)"]
 				break
 			#end
 		end
@@ -206,7 +221,7 @@ function Calc_ChiSquared(df_exp,df_th)
 	return χ1,χ2,χ3,χ4,χ5,χ6,count
 end
 
-function Make_ChiSquaredData(index,df_ParamType,df_JLK)
+function Make_ChiSquaredData(index,NParamType,df_ParamType,df_JLK)
     io1=open("data/BindingEnergyLam/ChiSquared.csv","w")
 
 	write(io1,"#ChiSquare1 = 1/Nd*sum(B_exp-B_th)^2/sigma\n")
@@ -214,7 +229,6 @@ function Make_ChiSquaredData(index,df_ParamType,df_JLK)
 	write(io1,"#ChiSquare3 = sum(B_exp-B_th)^2/B_exp^2\n")
 	write(io1,"#ChiSquare4 = ChiSquare2 using only s-wave\n")
 	write(io1,"#ChiSquare5 = ChiSquare2 using only s-p splitting\n")
-	write(io1,"#Use data heavier than 13C_Lam\n")
 	write(io1,"#ChiSquare6 = ChiSquare2 using only heavyer than 13C_Lam\n")
 	write(io1,"index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare1,ChiSquare2,ChiSquare3,ChiSquare4,ChiSquare5,ChiSquare6,Number of Data\n")
 	#write(io1,"index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare1,ChiSquare2,ChiSquare3,ChiSquare4,ChiSquare5,Number of Data\n")
@@ -222,10 +236,10 @@ function Make_ChiSquaredData(index,df_ParamType,df_JLK)
 	df_exp=DataFrame(CSV.File("LamBindingEnergy.csv",comment="#"))
     for i=eachindex(index)
 		LParamType_str=df_ParamType[index[i],"Parameter Name"]
-		df_th=DataFrame(CSV.File("data/BindingEnergyLam/BindingEnergy$(LParamType_str).csv",comment="#"))
+		df_th=DataFrame(CSV.File("data/BindingEnergyLam/BindingEnergy$(NParamType)$(LParamType_str).csv",comment="#"))
 		χ1,χ2,χ3,χ4,χ5,χ6,count=Calc_ChiSquared(df_exp,df_th)
 		write(io1,"$(index[i])")
-		write(io1,",SLy4") #20221105 only use SLy4
+		write(io1,",$(NParamType)") #20221105 only use SLy4
 		write(io1,",$(df_ParamType[index[i],"Parameter Name"])")
 		write(io1,",$(df_JLK[index[i],"J (MeV)"])")
 		write(io1,",$(df_JLK[index[i],"L (MeV)"])")
@@ -309,13 +323,15 @@ function ExecuteAll()
 	#index=vcat(1:25,47:50)
 	#index=vcat(1:20,47:50)
 	#index=1:1562
-	index=1:3578
+	#index=1:3578
+	index=47:50
+	NParamType="SLy4"
     for i in index
         LParamType_str=df[i,"Parameter Name"]
-        Make_BindingEnergyLamData("SLy4",LParamType_str)
+        Make_BindingEnergyLamData(NParamType,LParamType_str)
     end
 	df2=DataFrame(CSV.File("JLK.csv"))
-    Make_ChiSquaredData(index,df,df2)
+    Make_ChiSquaredData(index,NParamType,df,df2)
 
 	#df3=DataFrame(CSV.File("data/BindingEnergyLam/ChiSquared.csv", comment="#"))
 	#SelectBest(df3)
