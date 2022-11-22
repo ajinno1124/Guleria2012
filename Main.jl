@@ -737,8 +737,8 @@ function OutPutFiles(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType, α=0.5
     mkpath("data/$(NParamType)$(LParamType_str)/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     #cd("data/$(LParamType_str)/Z$(Z)N$(N)L$(Λ)_$(NParamType)$(LParamType_str)")
     WriteStates(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
-    WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
+    #WriteWaveFunc(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str)
+    #WriteDensityPot(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	if Λ==1
         WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
 	elseif Λ==0
@@ -780,7 +780,7 @@ function WriteStates(AN::AtomNum,Ansocc,AnsStates,NParamType,LParamType,LParamTy
 
     rmesh=getrmesh()
     WriteHeader(io,AN,NParamType,LParamType_str)
-    write(io, "Baryon Type, occ, j, l, Energy(MeV)\n")
+    write(io, "Baryon Type, occ,j,l,Energy(MeV)\n")
 
     for b=1:3
         for i=eachindex(AnsStates[b])
@@ -954,7 +954,7 @@ function Hamiltonian_L(aL,γ1,γ2,γ3,γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
     Hl=zeros(Float64,Nmesh)
     @. Hl += ħc^2/(2*mΛMeV)*τ3[3,:]
     @. Hl += aL[1]*ρN[:]*ρ3[3,:]
-    @. Hl += aL[2]*(τ3[3,:]*ρN[:] + τN*ρ3[3,:])
+    @. Hl += aL[2]*(τ3[3,:]*ρN[:] + τN[:]*ρ3[3,:])
     @. Hl -= aL[3]*(ρ3[3,:]*LapρN[:])
     @. Hl += aL[4]*ρN[:]^(γ1+1)*ρ3[3,:]
 	@. Hl += aL[5]*ρN[:]^(γ2+1)*ρ3[3,:]
@@ -1099,7 +1099,7 @@ function Energy_N_SPS(Ansocc,AnsStates)
 end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_str,aN,aL,pN,pL)
-    io1=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/Energy.csv","w")
+    io1=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/Energy_SPS.csv","w")
 	write(io1,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
 	WriteHeader(io1,AN,NParamType,LParamType_str)
     rmesh=getrmesh()
@@ -1107,6 +1107,11 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
     N=AN.N
     Λ=AN.Λ
     WriteHeader(io1,AN,NParamType,LParamType)
+
+    aN=NuclParameters.getaN(NParamType)
+    aL=LambdaParameters.getaL(LParamType)
+    pN=NuclParameters.getParams(NParamType)
+    pΛ=LambdaParameters.getParams(LParamType)
 
     ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
     ρN=ρ3[1,:]+ρ3[2,:]
@@ -1123,27 +1128,27 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
 	El_R=Energy_L_R(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN)
 	Epair=Energy_Pair()
-    Etot=0.0
+    Etot_Int=0.0
     El_check=0.0
-	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
+	#Etot_Int=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
     if length(AnsStates[3])>0
-        Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+        Etot_SPS=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
         #El_check=AnsStates[3][1].E - (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
 		#El_check=0.5*(E_L_Kin+AnsStates[3][1].E)-El_R
         El=Energy_L(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
         #El_check=El- (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
 		El_check=El- AnsStates[3][1].E
     else
-        Etot=NaN
+        Etot_SPS=NaN
         El_check=NaN
     end
 
 
-	write(io1,"jLam,lLam,E/A(MeV),Etot(MeV),En_Kin(MeV),En_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
+	write(io1,"jLam,lLam,E/A(MeV),Etot_SPS(MeV),En_Kin(MeV),En_SPS(MeV),En_R(MeV),El_R(MeV),Epair(MeV),El_Check(MeV)\n")
 
     for i=eachindex(Ansocc[3])
 		#calculate the density assuming the i-th state is filled with 1/(2*j+1) Λ particles each.
-		Etot_i=Etot+AnsStates[3][i].E-AnsStates[3][1].E
+		Etot_i=Etot_SPS+AnsStates[3][i].E-AnsStates[3][1].E
 
 		write(io1,"$(AnsStates[3][i].QN.j)")
 		write(io1,",$(AnsStates[3][i].QN.l)")
@@ -1160,7 +1165,41 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 
 	close(io1)
 
-	#=
+    io2=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/Energy_Int.csv","w")
+	write(io1,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
+	WriteHeader(io2,AN,NParamType,LParamType_str)
+
+    write(io2,"jLam,lLam,E/A(MeV),Etot_Int(MeV),EN(MeV),EL(MeV),Ec_dir(MeV),Ec_exch(MeV),Epair(MeV),Ecm_dir(MeV),Ecm_exch(MeV)\n")
+
+    En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
+	Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,AN.Z)
+	Ec_exch=Energy_coul_exch(ρ3[1,:])
+	Epair=Energy_Pair()
+	Ecm_dir=Energy_CM_dir(AN,τ3)
+	Ecm_exch=Energy_CM_exch()
+    El=Energy_L(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+	Etot_Int = En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch + El
+
+    for i=eachindex(Ansocc[3])
+		#calculate the density assuming the i-th state is filled with 1/(2*j+1) Λ particles each.
+		Etot_i=Etot_Int+AnsStates[3][i].E-AnsStates[3][1].E
+
+		write(io2,"$(AnsStates[3][i].QN.j)")
+		write(io2,",$(AnsStates[3][i].QN.l)")
+        write(io2,",$(Etot_i/(Z+N+Λ))")
+		write(io2,",$(Etot_i)")
+		write(io2,",$(En)")
+		write(io2,",$(El)")
+        write(io2,",$(Ec_dir)")
+        write(io2,",$(Ec_exch)")
+		write(io2,",$(Epair)")
+		write(io2,",$(Ecm_dir)")
+        write(io2,",$(Ecm_exch)\n")
+    end
+
+    close(io2)
+
+    #=
 	#check Energy of Lambda
 	io2=open("data/$(NParamType)$(LParamType_str)/Z$(AN.Z)N$(AN.N)L$(AN.Λ)_$(NParamType)$(LParamType_str)/check_Energy_Lam.csv","w")
 	write(io2,"#Elcheck = e_Lam - (e_Lam using Rearrangement Energy)\n")
@@ -1197,12 +1236,12 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType,LParamType,LParamType_s
 		write(io2,",$(El_R)\n")
 
     end
-	=#
+    =#
 
 end
 
 function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
-    io1=open("data/$(NParamType)NaN/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy.csv","w")
+    io1=open("data/$(NParamType)NaN/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy_Int.csv","w")
     rmesh=getrmesh()
     Z=AN.Z
     N=AN.N
@@ -1221,7 +1260,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
     divJN=divJ3[1,:]+divJ3[2,:]
     h=rmesh[2]-rmesh[1]
 
-	write(io1,"E/A(MeV),Etot(MeV),EN(MeV),Ec_dir(MeV),Ec_exch(MeV),Epair(MeV),Ecm_dir(MeV),Ecm_exch(MeV)\n")
+	write(io1,"E/A(MeV),Etot_Int(MeV),EN(MeV),Ec_dir(MeV),Ec_exch(MeV),Epair(MeV),Ecm_dir(MeV),Ecm_exch(MeV)\n")
 
 	#directory integrate energy density functional
 	En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
@@ -1243,17 +1282,17 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 	close(io1)
 
     #using single-particle energy and rearrangement energy
-	io2=open("data/$(NParamType)NaN/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy2.csv","w")
+	io2=open("data/$(NParamType)NaN/Z$(AN.Z)N$(AN.N)L0_$(NParamType)NaN/Energy_SPS.csv","w")
     WriteHeader(io2,AN,NParamType)
 
 	E_Kin=Energy_N_Kin(AN,τ3)
 	E_SPS=Energy_N_SPS(Ansocc,AnsStates)
 	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
-	Etot2=0.5*(E_Kin+E_SPS)- En_R + Epair
+	Etot_SPS=0.5*(E_Kin+E_SPS)- En_R + Epair
 
-	write(io2, "Etot2/A(MeV),Etot2(MeV),EKin(MeV),ESPS(MeV),ER(MeV),Epair(MeV),Ecm_dir(MeV)\n")
-	write(io2,"$(Etot2/(AN.N+AN.Z))")
-	write(io2,",$(Etot2)")
+	write(io2, "E/A(MeV),Etot_SPS(MeV),EKin(MeV),ESPS(MeV),ER(MeV),Epair(MeV),Ecm_dir(MeV)\n")
+	write(io2,"$(Etot_SPS/(AN.N+AN.Z))")
+	write(io2,",$(Etot_SPS)")
 	write(io2,",$(E_Kin)")
 	write(io2,",$(E_SPS)")
 	write(io2,",$(En_R)")

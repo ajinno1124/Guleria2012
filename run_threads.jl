@@ -89,7 +89,7 @@ function run_threads()
 	#LParamType=1563:3578
 
 	NParamType="SLy4"
-	LParamType=9
+	LParamType=vcat(-1,9)
 
 	io1=open("NotConverge.csv","w")
 	write(io1,"Z,N,L,NParamType,LParamType\n")
