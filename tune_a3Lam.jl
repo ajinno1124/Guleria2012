@@ -54,34 +54,70 @@ function HF_iter_for_a3(AN::AtomNum,aN,aL,pN,pL;MaxIter=15,α=0.5)
 end
 
 function TotalEnergyOfCore(Coreocc,CoreStates,AN::AtomNum,aN,pN)
+	rmesh=getrmesh()
 	ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Coreocc,CoreStates)
 	ρN=ρ3[1,:]+ρ3[2,:]
+    dρN=dρ3[1,:]+dρ3[2,:]
+    LapρN=Lapρ3[1,:]+Lapρ3[2,:]
+    τN=τ3[1,:]+τ3[2,:]
+    JN=J3[1,:]+J3[2,:]
+    divJN=divJ3[1,:]+divJ3[2,:]
 
+	#=
 	E_Kin=Energy_N_Kin(AN,τ3)
 	E_SPS=Energy_N_SPS(Coreocc,CoreStates)
 	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
 	Epair=Energy_Pair()
 	Etot2=0.5*(E_Kin+E_SPS)- En_R + Epair
+	=#
+	En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
+	Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,AN.Z)
+	Ec_exch=Energy_coul_exch(ρ3[1,:])
+	Epair=Energy_Pair()
+	Ecm_dir=Energy_CM_dir(AN,τ3)
+	Ecm_exch=Energy_CM_exch()
+	Etot = En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch
 
-	return Etot2
+	return Etot
 
 end
 
 function TotalEnergyHYP(Ansocc,AnsStates,AN::AtomNum,aN,aL,pN,pL)
-    ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
-    ρN=ρ3[1,:]+ρ3[2,:]
-
-	E_N_Kin=Energy_N_Kin(AN,τ3)
-	E_L_Kin=Energy_L_Kin(AN,τ3)
-	E_N_SPS=Energy_N_SPS(Ansocc,AnsStates)
-	En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
-	El_R=Energy_L_R(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN)
-	Epair=Energy_Pair()
-	#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
+	Etot=0.0
 	if  length(AnsStates[3])>=1
-		Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+		rmesh=getrmesh()
+		ρ3,dρ3,Lapρ3,τ3,J3,divJ3=Calc_Density(Ansocc,AnsStates)
+		ρN=ρ3[1,:]+ρ3[2,:]
+		ρN=ρ3[1,:]+ρ3[2,:]
+		dρN=dρ3[1,:]+dρ3[2,:]
+		LapρN=Lapρ3[1,:]+Lapρ3[2,:]
+		τN=τ3[1,:]+τ3[2,:]
+		JN=J3[1,:]+J3[2,:]
+		divJN=divJ3[1,:]+divJ3[2,:]
+		h=rmesh[2]-rmesh[1]
+
+		#=
+		E_N_Kin=Energy_N_Kin(AN,τ3)
+		E_L_Kin=Energy_L_Kin(AN,τ3)
+		E_N_SPS=Energy_N_SPS(Ansocc,AnsStates)
+		En_R=Energy_N_R(aN,pN.σ,ρ3,ρN)
+		El_R=Energy_L_R(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN)
+		Epair=Energy_Pair()
+		#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + AnsStates[3][i].E + Epair
+		=#
+		#Etot=0.5*(E_N_Kin+E_N_SPS)- En_R + Epair + (0.5*(E_L_Kin+AnsStates[3][1].E)-El_R)
+
+		En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
+		Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,AN.Z)
+		Ec_exch=Energy_coul_exch(ρ3[1,:])
+		Epair=Energy_Pair()
+		Ecm_dir=Energy_CM_dir(AN,τ3)
+		Ecm_exch=Energy_CM_exch()
+		El=Energy_L(aL,pL.γ1,pL.γ2,pL.γ3,pL.γ4,ρ3,ρN,τ3,τN,Lapρ3,LapρN)
+		Etot+=En + Ec_dir + Ec_exch + Epair - Ecm_dir - Ecm_exch + El
+
 	else
-		Etot=NaN
+		Etot+=NaN
 	end
 
 	return Etot
@@ -157,12 +193,7 @@ end
 function Outputa3()
 	df=DataFrame(CSV.File("Lambda Parameters.csv"))
 	#index=vcat([32,33,42,43],51:1562)
-	#index=vcat([32,33,42,43],51:300)
-	#index=240:248
-	#index=301:1200
-	#index=1201:1562
-	index=1563:3578
-	#index=1
+	index=1:3578
 
 	AN=AtomNum(6,6,1)
 	ExpBE=11.88 #MeV, Hashimoto & Tamura, Gogami
