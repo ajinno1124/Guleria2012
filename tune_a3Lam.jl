@@ -193,7 +193,8 @@ function Outputa3()
 	df=DataFrame(CSV.File("Lambda Parameters.csv"))
 	#index=vcat([32,33,42,43],51:1562)
 	#index=1:3578
-	index=47:50
+	#index=47:50
+	index=51:3578
 
 	AN=AtomNum(6,6,1)
 	ExpBE=11.88 #MeV, Hashimoto & Tamura, Gogami
