@@ -647,7 +647,7 @@ function CheckConvergence(Oldocc,OldStates,Newocc,NewStates,rmesh;rtol=1e-5)
 
 end
 
-function HF_iter(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType,α=0.5)
+function HF_iter(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType,α=0.1)
     @assert α>0.05
     OldStates=InitialCondition(AN)
     Oldocc=Calc_occ(AN,OldStates)
@@ -709,7 +709,7 @@ end
 # out put files
 # return -1 when HF iteration does not converge.
 # return 1 when HF iteration converge.
-function OutPutFiles(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType, α=0.5)
+function OutPutFiles(AN::AtomNum;MaxIter=20,NParamType="SLy4",LParamType, α=0.1)
     Ansocc,AnsStates,Check=HF_iter(AN,NParamType=NParamType,LParamType=LParamType,MaxIter=MaxIter,α=α)
 
 	if Check==false
@@ -1262,7 +1262,7 @@ function WriteTotalEnergy(AN,Ansocc,AnsStates,NParamType)
 
 	write(io1,"E/A(MeV),Etot_Int(MeV),EN(MeV),Ec_dir(MeV),Ec_exch(MeV),Epair(MeV),Ecm_dir(MeV),Ecm_exch(MeV)\n")
 
-	#directory integrate energy density functional
+	#diectory integrate energy density functional
 	En=Energy_N(aN,pN.σ,pN.W0,ρ3,ρN,τ3,τN,Lapρ3,LapρN,J3,JN,divJ3,divJN)
 	Ec_dir=Energy_coul_dir(ρ3[1,:],rmesh,AN.Z)
 	Ec_exch=Energy_coul_exch(ρ3[1,:])

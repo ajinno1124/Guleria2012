@@ -70,7 +70,7 @@ function run_threads()
 
 	#a3tuned params 2022/11/01
 	NParamType="SLy4"
-	LParamType=47:50
+	LParamType=vcat(-1,47:50)
 
 	#NParamType="SLy4"
 	#LParamType=21:25
