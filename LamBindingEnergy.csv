@@ -18,6 +18,7 @@ Nuclei,Core Z,Core N,Core A,lLam,B. E. (MeV),error(MeV),Paper,Exp. name,
 40Ca_Laｍ,20,19,39,0,18.7,1.1,Pile et al. (1991),,どこに書いてる？
 51V_Lam,23,27,50,0,20.47,0.13,Pile et al. (1991),SKS,Hashimoto TamuraはSKS?
 51V_Lam,23,27,50,1,11.77,0.16,Pile at al. (1991),SKS,
+
 51V_Lam,23,27,50,2,3.05,0.13,Pile at al. (1991),SKS,
 56Fe_Lam,26,29,55,0,21,1,"Bando, Motoba and Zofka (1990)",,
 89Y_Lam,39,49,88,0,23.6,0.5,,,SKS? in HT

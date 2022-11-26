@@ -18,21 +18,21 @@ plt.rcParams['figure.subplot.bottom'] = 0.15
 #plt.rc('text.latex', preamble=r'\usepackage{braket}')
 #plt.rc('text.latex', preamble=r'\usepackage{physics}')
 
-'''
+
 #d1=pd.read_csv('../JLK.csv',comment='#')
 d1=pd.read_csv('../../data/BindingEnergyLam/ChiSquared.csv',comment='#')
 df=d1[d1["Number of Data"]==25.0]
 df=df[df["index"]>50]
 #print(df.head(),len(df))
-'''
+
 
 J_mesh=np.array([-33,-32,-31,-30,-29,-28,-27])
 L_mesh=np.array([-50,-40,-30,-20,-10,0,10,20])
 K_mesh=np.array([0,100,200,300,400,500,600])
 ms_m_mesh=np.array([0.6,0.65,0.7,0.75,0.8,0.85,0.90,0.95,1.00])
 
-'''
-f=open('Jm_best.csv','w',encoding="utf-8")
+
+f=open('mL_best.csv','w',encoding="utf-8")
 f.write("#ChiSquare1 = 1/Nd*sum(B_exp-B_th)^2/sigma\n")
 f.write("#ChiSquare2 = sqrt(1/Nd*sum(B_exp-B_th)^2)^2) MeV\n")
 f.write("#ChiSquare3 = sum(B_exp-B_th)^2/B_exp^2\n")
@@ -41,20 +41,21 @@ f.write("#ChiSquare5 = ChiSquare2 using only s-p splitting\n")
 f.write("#ChiSquare6 = ChiSquare2 using only heavyer than 13C_Lam\n")
 f.write('index,NParamType,LParameterType,J (MeV),L (MeV),K (MeV),m*/m,ChiSquare6\n')
 
-for j in J_mesh:
-	for mi in ms_m_mesh:
-		df1=df[abs(df["J (MeV)"]-j)<0.01]
-		df1=df1[abs(df1["m*/m"]-mi)<0.01]
-		MaxId=df1["ChiSquare6"].idxmin()
-		f.write(f'{df1["index"][MaxId]}')
-		f.write(f',{df1["NParamType"][MaxId]}')
-		f.write(f',{df1["LParameterType"][MaxId]}')
-		f.write(f',{df1["J (MeV)"][MaxId]}')
-		f.write(f',{df1["L (MeV)"][MaxId]}')
-		f.write(f',{df1["K (MeV)"][MaxId]}')
-		f.write(f',{df1["m*/m"][MaxId]}')
-		f.write(f',{df1["ChiSquare6"][MaxId]}')
-		f.write('\n')
+for mi in ms_m_mesh:
+	for l in L_mesh:
+		df1=df[abs(df["m*/m"]-mi)<0.01]
+		df1=df1[abs(df1["L (MeV)"]-l)<0.01]
+		if len(df1)>0:
+			MaxId=df1["ChiSquare6"].idxmin()
+			f.write(f'{df1["index"][MaxId]}')
+			f.write(f',{df1["NParamType"][MaxId]}')
+			f.write(f',{df1["LParameterType"][MaxId]}')
+			f.write(f',{df1["J (MeV)"][MaxId]}')
+			f.write(f',{df1["L (MeV)"][MaxId]}')
+			f.write(f',{df1["K (MeV)"][MaxId]}')
+			f.write(f',{df1["m*/m"][MaxId]}')
+			f.write(f',{df1["ChiSquare6"][MaxId]}')
+			f.write('\n')
 
 f.close()
 
@@ -75,7 +76,7 @@ f.close()
 	#L[i]=d1["L (MeV)"][index-1]
 	#K[i]=d1["K (MeV)"][index-1]
 	#ms_m[i]=d1["m*/m"][index-1]
-	'''
+	
 
 #fig=plt.figure()
 #subplots_adjust(hspace=0.0,wspace=0.0,top=0.9,left=0.2,right=0.85)
@@ -100,8 +101,7 @@ for i in range(0,len(ms_m_mesh)):
 
 #ax.plot_surface(x_data,y_data,z_data,cmap=cm.jet)
 ax.plot_wireframe(x_data,y_data,z_data,color="k")
-#levels=[0.6,0.8,1.0,1.5]
-levels=[0.6,0.8,1.0]
+levels=[0.8,1.0,1.5]
 colors=['r','b','darkgreen']
 linestyles=['solid','dashed','dashdot']
 CS=ax.contour(x_data,y_data,z_data,levels=levels,linestyles=linestyles, colors=colors,labels=levels)
@@ -123,7 +123,6 @@ CS=ax.contour(x_data,y_data,z_data,levels=levels,linestyles=linestyles, colors=c
 plt.clabel(CS, inline=1, fontsize=10)
 #plt.title('Simplest default with labels')
 
-#labels = [f'{levels[0]}',f'{levels[1]}',f'{levels[2]}',f'{levels[3]}']
 labels = [f'{levels[0]}',f'{levels[1]}',f'{levels[2]}']
 for i in range(len(labels)):
     CS.collections[i].set_label(labels[i])
@@ -160,7 +159,7 @@ ax.view_init(azim=-160,elev=50)
 plt.tight_layout()
 plt.savefig("mL_best.pdf",dpi=300)
 plt.savefig("mL_best.png",dpi=300)
-plt.show()
+#plt.show()
 
 #指定可能なファイル形式は emf, eps, jpeg, jpg, pdf, png, ps, raw, rgba, svg,
 #svgz, tif, tiff です。拡張子を指定すると勝手に判断されます。
