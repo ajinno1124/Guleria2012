@@ -8,6 +8,7 @@ import pylab as pl
 from pylab import *
 import cmath
 
+'''
 # create BindingEnergyLY.csv
 def BindingEnergyL(NParamType,LParamType):
 	ZN=np.array([
@@ -63,6 +64,7 @@ def BindingEnergyL(NParamType,LParamType):
 #BindingEnergyL("SK3","LY1_a3zero")
 BindingEnergyL("SLy4","LY1")
 #BindingEnergyL("SK3","LY1")
+'''
 
 ################################################3
 # main plot process
@@ -82,7 +84,7 @@ df_data=df_data[df_data["Core A"]>=12]
 ax.errorbar(df_data["Core A"]**(-2/3),df_data["B. E. (MeV)"],yerr=df_data["error(MeV)"],label="exp.",fmt='o',markersize=5,ecolor='k',markeredgecolor = "black",color='k',zorder=10)
 
 def Plot_OnePot(NParamType,LParamType,colors,fmts,linewidth):
-	df=pd.read_csv(f'BindingEnergy{NParamType}{LParamType}.csv',comment='#')
+	df=pd.read_csv(f'../../data/BindingEnergyLam/BindingEnergy{NParamType}{LParamType}.csv',comment='#')
 	d0=df[df["lLam"]==0]
 	d1=df[df["lLam"]==1]
 	d2=df[df["lLam"]==2]

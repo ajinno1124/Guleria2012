@@ -55,7 +55,7 @@ def Plot_OnePot(NParamType,LParamType,colors,fmts,linewidth):
 
 fmts=['o-', 's-', '^-']
 colors=['r','b', 'darkgreen']
-Plot_OnePot("SLy4","GKW3_medium(rho1.5)_a3tuned",colors,fmts,1)
+Plot_OnePot("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.5)_a3tuned",colors,fmts,1)
 
 ax.set_xlim(0,0.25)
 ax.set_ylim(0,30)

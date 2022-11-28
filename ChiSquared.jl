@@ -321,7 +321,7 @@ function ExecuteAll()
     df=DataFrame(CSV.File("Lambda Parameters.csv"))
     #index=1:50
 	#index=vcat(1:25,47:50)
-	index=51:60
+	index=1:3578
 
 	NParamType="SLy4"
     for i in index
