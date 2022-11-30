@@ -9,6 +9,7 @@ from pylab import *
 import cmath
 
 # create BindingEnergyLY.csv
+'''
 def BindingEnergyL(NParamType,LParamType):
 	ZN=[
 		[2,5],
@@ -53,6 +54,7 @@ def BindingEnergyL(NParamType,LParamType):
 	f.close()
 
 BindingEnergyL("SLy4","HPL2")
+'''
 
 ################################################3
 # main plot process
@@ -63,7 +65,7 @@ plt.rcParams['text.usetex'] = True
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams['figure.subplot.bottom'] = 0.15
 
-df=pd.read_csv('BindingEnergyHPL2.csv',comment='#')
+df=pd.read_csv('../BindingEnergyHPL2.csv',comment='#')
 d0=df[df["lLam"]==0]
 d1=df[df["lLam"]==1]
 d2=df[df["lLam"]==2]
