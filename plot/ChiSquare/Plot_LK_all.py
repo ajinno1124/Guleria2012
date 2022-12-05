@@ -122,29 +122,28 @@ CS=ax.contour(x_data,y_data,z_data,levels=levels,linestyles=linestyles, colors=c
 plt.clabel(CS, inline=1, fontsize=10)
 #plt.title('Simplest default with labels')
 
-labels = [f'{levels[0]}',f'{levels[1]}',f'{levels[2]}']
+labels=[f'{levels[0]} MeV',f"{levels[1]} MeV",f"{levels[2]} MeV"]
 #labels = [f'{levels[0]}',f'{levels[1]}',f'{levels[2]}']
 for i in range(len(labels)):
     CS.collections[i].set_label(labels[i])
 
-ax.legend(loc='upper left',frameon=0,numpoints=1,fontsize=14)
-#ax.set_xlim(-34,-26)
-#ax.set_xlim(0.55,1.05)
-ax.set_xlim(-55,25)
-#ax.set_ylim(0.55,1.05)
-#ax.set_ylim(-55,25)
-ax.set_ylim(-50,650)
+ax.legend(loc='upper left',frameon=0,numpoints=1,fontsize=12)
+ax.set_xlim(-50,20)
+ax.set_ylim(0,600)
 ax.set_zlim(0,2)
-#plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
-#ax.set_xlabel(r'$J_\Lambda$ (MeV)',fontsize=16)
-ax.set_xlabel(r'$L_\Lambda (MeV)$',fontsize=16)
-#ax.set_ylabel(r'$m_\Lambda^*/m_\Lambda$',fontsize=16)
-ax.set_ylabel(r'$K_\Lambda (MeV)$',fontsize=16)
-#ax.set_zlabel(r'$\ev{(B_{\Lambda, {\rm exp}} - B_{\Lambda {\rm exp})^2}}^{1/2}$',fontsize=16)
-ax.tick_params(axis='x', which='both', direction='in',labelsize=14)
-ax.tick_params(axis='y', which='both', direction='in',labelsize=14)
-ax.tick_params(axis='z', which='both', direction='in',labelsize=14)
-ax.view_init(azim=-171,elev=39)
+ax.set_xticks(np.array([-50,-40,-30,-20,-10,0,10,20]), fontsize=14)
+ax.set_yticks(np.array([0,100,200,300,400,400,500,600]), fontsize=14)
+ax.set_zticks(np.array([0,0.5,1.0,1.5,2.0]), fontsize=14)
+ax.set_xlabel(r'$L_\Lambda$ (MeV)',fontsize=16)
+ax.set_ylabel(r'$K_\Lambda$ (MeV)',fontsize=16)
+ax.set_zlabel(r"Mean Deviation (MeV)",fontsize=16)
+ax.xaxis._axinfo['label']['space_factor'] = 10
+ax.xaxis.labelpad=10
+ax.yaxis.labelpad=10
+ax.tick_params(axis='x', labelsize=14)
+ax.tick_params(axis='y', labelsize=14)
+ax.tick_params(axis='z', labelsize=14)
+ax.view_init(azim=-141,elev=44)
 #ax.set_xticks([0,1,2,3,4,5])
 #ax.set_yticks([-50,0,50,100,200,300])
 #ax.tick_params(labelsize=12)
@@ -157,10 +156,10 @@ ax.view_init(azim=-171,elev=39)
 
 #plt.savefig("v2ch.eps",format='eps',dpi=1000)
 #plt.savefig("pxe895qmdmsv.eps",format='eps',bbox__inches='tight')
-plt.tight_layout()
+#plt.tight_layout()
 plt.savefig("LK_best.pdf",dpi=300)
 plt.savefig("LK_best.png",dpi=300)
-#plt.show()
+plt.show()
 
 #指定可能なファイル形式は emf, eps, jpeg, jpg, pdf, png, ps, raw, rgba, svg,
 #svgz, tif, tiff です。拡張子を指定すると勝手に判断されます。

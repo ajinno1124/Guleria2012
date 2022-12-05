@@ -41,8 +41,9 @@ def Plot_OnePot(NParamType,LParamType,label,color,fmt,linewidth):
 	ax.plot(d4["A"]**(-2/3),d4["BE_Int(MeV)"],fmt,c=color,lw=linewidth,ms=7,fillstyle='none')
 	#ax.plot(d5["A"]**(-2/3),d5["BE_Int(MeV)"],fmt,c=color,lw=linewidth,ms=7,fillstyle='none')
 
-Plot_OnePot("SLy4","GKW2_medium(rho1.5)+Kohno2(k1.5)_a3tuned",'GKW2+Kohno2','b','o--',1.5)
-Plot_OnePot("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.5)_a3tuned",'GKW3+Kohno3','r','s--',1.5)
+#Plot_OnePot("SLy4","GKW2_medium(rho1.5)+Kohno2(k1.5)_a3tuned",'GKW2+Kohno2','b','o--',1.5)
+Plot_OnePot("SLy4","GKW3_medium(rho1.5)_a3tuned",'GKW3','r','s-',1.5)
+Plot_OnePot("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.5)_a3tuned",'GKW3+Kohno3','darkgreen','o--',1.5)
 
 ax.set_xlim(0,0.25)
 ax.set_ylim(0,30)

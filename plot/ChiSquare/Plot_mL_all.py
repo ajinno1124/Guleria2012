@@ -123,25 +123,29 @@ CS=ax.contour(x_data,y_data,z_data,levels=levels,linestyles=linestyles, colors=c
 plt.clabel(CS, inline=1, fontsize=10)
 #plt.title('Simplest default with labels')
 
-labels = [f'{levels[0]}',f'{levels[1]}',f'{levels[2]}']
+#labels = [f'{levels[0]}',f'{levels[1]}',f'{levels[2]}']
+labels=[f'{levels[0]} MeV',f"{levels[1]} MeV",f"{levels[2]} MeV"]
 for i in range(len(labels)):
     CS.collections[i].set_label(labels[i])
 
-ax.legend(loc='upper left',frameon=0,numpoints=1,fontsize=14)
+ax.legend(loc='upper right',frameon=0,numpoints=1,fontsize=12)
 #ax.set_xlim(-34,-26)
-ax.set_xlim(0.55,1.05)
+ax.set_xlim(0.6,1.0)
 #ax.set_ylim(0.55,1.05)
-ax.set_ylim(-55,25)
+ax.set_ylim(-50,20)
 #ax.set_ylim(-50,650)
 ax.set_zlim(0,2)
-#plt.yticks(arange(0.01,0.08,0.02), fontsize=14)
-#ax.set_xlabel(r'$J_\Lambda$ (MeV)',fontsize=16)
+ax.set_xticks(np.array([0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0]), fontsize=14)
+ax.set_yticks(np.array([-50,-40,-30,-20,-10,0,10,20]), fontsize=14)
+ax.set_zticks(np.array([0,0.5,1.0,1.5,2.0]), fontsize=14)
 ax.set_xlabel(r'$m_\Lambda^*/m_\Lambda$',fontsize=16)
-#ax.set_ylabel(r'$m_\Lambda^*/m_\Lambda$',fontsize=16)
-ax.set_ylabel(r'$L_\Lambda (MeV)$',fontsize=16)
-#ax.set_zlabel(r'$\ev{(B_{\Lambda, {\rm exp}} - B_{\Lambda {\rm exp})^2}}^{1/2}$',fontsize=16)
-ax.tick_params(axis='x', which='both', direction='in',labelsize=14)
-ax.tick_params(axis='y', which='both', direction='in',labelsize=14)
+ax.set_ylabel(r'$L_\Lambda$ (MeV)',fontsize=16)
+ax.set_zlabel(r"Mean Deviation (MeV)",fontsize=16)
+ax.xaxis._axinfo['label']['space_factor'] = 10
+ax.xaxis.labelpad=10
+ax.yaxis.labelpad=10
+ax.tick_params(axis='x', which='both', direction='in',labelsize=14,labelrotation=-30)
+ax.tick_params(axis='y', which='both', direction='in',labelsize=14,labelrotation=20)
 ax.tick_params(axis='z', which='both', direction='in',labelsize=14)
 ax.view_init(azim=-160,elev=50)
 #ax.set_xticks([0,1,2,3,4,5])
@@ -156,7 +160,7 @@ ax.view_init(azim=-160,elev=50)
 
 #plt.savefig("v2ch.eps",format='eps',dpi=1000)
 #plt.savefig("pxe895qmdmsv.eps",format='eps',bbox__inches='tight')
-plt.tight_layout()
+#plt.tight_layout()
 plt.savefig("mL_best.pdf",dpi=300)
 plt.savefig("mL_best.png",dpi=300)
 #plt.show()
