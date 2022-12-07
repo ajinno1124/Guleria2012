@@ -74,7 +74,7 @@ ax.tick_params(axis='y',right='true',left='true',labelsize=16)
 plt.tight_layout()
 
 #plt.savefig("v2ch.eps",format='eps',dpi=1000)
-#plt.savefig("pxe895qmdmsv.eps",format='eps',bbox__inches='tight')
+#plt.savefig("pxe895qmdmsv.eps",format='eps',bbox_inches='tight')
 plt.savefig("MomentumDependence.pdf",dpi=300)
 plt.savefig("MomentumDependence.png",dpi=300)
 #plt.savefig("timeevolv1.png")
