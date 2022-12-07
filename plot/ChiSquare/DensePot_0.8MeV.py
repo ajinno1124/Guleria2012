@@ -48,7 +48,7 @@ zo600=10
 ls600='-'
 
 cother="darkgreen"
-lwother=1
+lwother=1.5
 zoother=15
 lsother=':'
 
