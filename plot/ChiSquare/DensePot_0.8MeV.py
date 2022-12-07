@@ -37,21 +37,36 @@ df4=pd.read_csv('../../Fitting Parameters/Givendata/SNM3BF_upper.csv')
 ax.fill(np.append(df1["density"],df2["density"][::-1]),np.append(df1["U"],df2["U"][::-1]),label="GKW2",color=(0,0,1,0.08),edgecolor='black')
 ax.fill(np.append(df3["density"],df4["density"][::-1]),np.append(df3["U"],df4["U"][::-1]),label="GKW3",color=(1,0,0,0.08),edgecolor='black')
 
+c300='b'
+lw300=1
+zo300=1
+ls300='--'
+
+c600="r"
+lw600=1
+zo600=10
+ls600='-'
+
+cother="darkgreen"
+lwother=1
+zoother=15
+lsother=':'
+
 for index in df["index"]:
 	#print(index,df["K (MeV)"][index-1])
 	df_pot=pd.read_csv(f'../../data/Potential/Potential_{index}/DensityDep_{index}.csv',comment='#')
 	if abs(df["K (MeV)"][index-1]-300)<0.1:
-		ax.plot(df_pot["density"],df_pot["U"],color="r",linewidth=1)
+		ax.plot(df_pot["density"],df_pot["U"],color=c300,linewidth=lw300,zorder=zo300,linestyle=ls300)
 	elif abs(df["K (MeV)"][index-1]-600)<0.1:
-		ax.plot(df_pot["density"],df_pot["U"],color="b",linewidth=1)
+		ax.plot(df_pot["density"],df_pot["U"],color=c600,linewidth=lw600,zorder=zo600,linestyle=ls600)
 	else:
-		aother=ax.plot(df_pot["density"],df_pot["U"],color="darkgreen",linewidth=1)
+		aother=ax.plot(df_pot["density"],df_pot["U"],color=cother,linewidth=lwother,zorder=zoother,linestyle=lsother)
 
 nanvec=np.zeros(2)
 nanvec[:]=np.nan
-ax.plot(nanvec,nanvec,color="r",linewidth=1,label=r"$K_\Lambda = 300$ (MeV)")
-ax.plot(nanvec,nanvec,color="b",linewidth=1,label=r"$K_\Lambda = 300$ (MeV)")
-ax.plot(nanvec,nanvec,color="darkgreen",linewidth=1,label=r"others")
+ax.plot(nanvec,nanvec,label=r"$K_\Lambda = 300$ (MeV)",color=c300,linewidth=lw300,zorder=zo300,linestyle=ls300)
+ax.plot(nanvec,nanvec,label=r"$K_\Lambda = 600$ (MeV)",color=c600,linewidth=lw600,zorder=zo600,linestyle=ls600)
+ax.plot(nanvec,nanvec,label=r"others",color=cother,linewidth=lwother,zorder=zoother,linestyle=lsother)
 
 ax.legend(loc='best',frameon=0,numpoints=1,fontsize=13)
 ax.set_xlim(0,2)

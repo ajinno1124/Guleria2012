@@ -42,20 +42,20 @@ ydata=df2_dat[df2_dat.k<2.5].Um
 a2=ax.scatter(xdata,ydata-ydata[0],marker='s',s=20,label='Kohno2', color="black")
 #a2=ax.plot(xdata,ydata-ydata[0],label=r'Kohno2',linewidth=3.5, color="black",ls='--')
 
-c300='r'
-lw300=3
-zo300=1
-ls300='-'
+c300='b'
+lw300=2
+zo300=10
+ls300='--'
 
-c600="b"
-lw600=1
-zo600=10
-ls600='--'
+c600="r"
+lw600=2
+zo600=1
+ls600='-'
 
 cother="darkgreen"
 lwother=1
 zoother=15
-lsother='--'
+lsother=':'
 
 
 for index in df["index"]:
