@@ -43,7 +43,6 @@ def Plot_OnePot(NParamType,LParamType,label,color,fmt,linewidth):
 
 Plot_OnePot("SLy4","GKW2_medium(rho1.5)+Kohno2(k1.5)_a3tuned",'GKW2+Kohno2','b','o-',1.5)
 Plot_OnePot("SLy4","GKW3_medium(rho1.5)+Kohno3(k1.5)_a3tuned",'GKW3+Kohno3','r','s-',1.5)
-Plot_OnePot("SLy4","LY4",'LY4','k','^-',1.5)
 
 ax.set_xlim(0,0.25)
 ax.set_ylim(10,35)
